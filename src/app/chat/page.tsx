@@ -26,9 +26,6 @@ export default function Home() {
       tools={tools}
       tamboUrl={process.env.NEXT_PUBLIC_TAMBO_URL}
       mcpServers={mcpServers}
-      threadConfig={{
-        autoGenerateName: false,
-      }}
     >
       <div className="h-screen">
         <MessageThreadFull className="max-w-4xl mx-auto" />
