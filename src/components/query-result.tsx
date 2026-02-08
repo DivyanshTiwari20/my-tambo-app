@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ResponsiveContainer } from 'recharts';
 
 interface QueryResultProps {
@@ -44,7 +44,7 @@ export default function QueryResult({
                 console.log('QueryResult: Starting fetch for table:', table);
 
                 // Build query using Supabase client
-                let query = supabase.from(table).select(columns || '*');
+                let query = getSupabase().from(table).select(columns || '*');
 
                 // Add ordering
                 if (orderBy) {
