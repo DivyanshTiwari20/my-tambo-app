@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { getSupabase } from '@/lib/supabase';
 import { BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ResponsiveContainer } from 'recharts';
 
@@ -19,6 +19,39 @@ interface QueryResultProps {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B9D', '#C9CBCF', '#82ca9d', '#ffc658', '#ff7c43'];
 
+const VALID_COLUMNS = new Set([
+    'id', 'name', 'firm', 'sector', 'stage', 'location',
+    'ticket_size', 'portfolio_companies', 'recently_active',
+    'linkedin', 'website',
+]);
+
+function sanitizeColumns(cols: string | undefined): string {
+    if (!cols) return '*';
+    const parsed = cols.split(',').map(c => c.trim()).filter(c => VALID_COLUMNS.has(c));
+    return parsed.length > 0 ? parsed.join(',') : '*';
+}
+
+function aggregateByKey(
+    rows: Record<string, unknown>[],
+    groupKey: string,
+    valueKey?: string,
+): { label: string; count: number; sum: number }[] {
+    const groups: Record<string, { count: number; sum: number }> = {};
+
+    for (const row of rows) {
+        const key = String(row[groupKey] ?? 'Unknown');
+        if (!groups[key]) groups[key] = { count: 0, sum: 0 };
+        groups[key].count++;
+        if (valueKey && typeof row[valueKey] === 'number') {
+            groups[key].sum += row[valueKey] as number;
+        }
+    }
+
+    return Object.entries(groups)
+        .map(([label, v]) => ({ label, count: v.count, sum: v.sum }))
+        .sort((a, b) => b.count - a.count);
+}
+
 export default function QueryResult({
     table,
     columns,
@@ -31,9 +64,11 @@ export default function QueryResult({
     yKey,
     title
 }: QueryResultProps) {
-    const [data, setData] = useState<any[]>([]);
+    const [data, setData] = useState<Record<string, unknown>[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const isChart = displayType === 'bar' || displayType === 'line' || displayType === 'pie';
 
     useEffect(() => {
         const fetchData = async () => {
@@ -41,31 +76,27 @@ export default function QueryResult({
                 setLoading(true);
                 setError(null);
 
-                console.log('QueryResult: Starting fetch for table:', table);
+                const selectCols = isChart ? '*' : sanitizeColumns(columns);
+                const fetchLimit = isChart ? 1000 : limit;
 
-                // Build query using Supabase client
-                let query = getSupabase().from(table).select(columns || '*');
+                let query = getSupabase().from(table).select(selectCols);
 
-                // Add ordering
-                if (orderBy) {
+                if (orderBy && VALID_COLUMNS.has(orderBy)) {
                     query = query.order(orderBy, { ascending: orderDirection === 'asc' });
                 }
 
-                // Add limit
-                if (limit) {
-                    query = query.limit(limit);
-                }
+                query = query.limit(fetchLimit);
 
-                // Add filter if provided (format: column=eq.value)
                 if (filter) {
-                    const parts = filter.split('=');
-                    if (parts.length === 2) {
-                        const column = parts[0];
-                        const opValue = parts[1];
-                        const opParts = opValue.split('.');
-                        if (opParts.length >= 2) {
-                            const operator = opParts[0];
-                            const value = opParts.slice(1).join('.');
+                    const eqIdx = filter.indexOf('=');
+                    if (eqIdx > 0) {
+                        const column = filter.slice(0, eqIdx).trim();
+                        const opValue = filter.slice(eqIdx + 1);
+                        const dotIdx = opValue.indexOf('.');
+
+                        if (dotIdx > 0 && VALID_COLUMNS.has(column)) {
+                            const operator = opValue.slice(0, dotIdx);
+                            const value = opValue.slice(dotIdx + 1);
 
                             if (operator === 'eq') {
                                 query = query.eq(column, value === 'true' ? true : value === 'false' ? false : value);
@@ -84,13 +115,11 @@ export default function QueryResult({
 
                 const { data: result, error: queryError } = await query;
 
-                console.log('QueryResult: Fetch complete', { result, error: queryError });
-
                 if (queryError) {
                     throw new Error(queryError.message);
                 }
 
-                setData(result || []);
+                setData((result as Record<string, unknown>[]) || []);
             } catch (err) {
                 console.error('QueryResult: Error', err);
                 setError(err instanceof Error ? err.message : 'Failed to fetch data');
@@ -102,7 +131,44 @@ export default function QueryResult({
         if (table) {
             fetchData();
         }
-    }, [table, columns, orderBy, orderDirection, limit, filter]);
+    }, [table, columns, orderBy, orderDirection, limit, filter, isChart]);
+
+    const dataKeys = useMemo(() => Object.keys(data[0] || {}), [data]);
+
+    const chartData = useMemo(() => {
+        if (!isChart || data.length === 0) return [];
+
+        const groupKey =
+            xKey && dataKeys.includes(xKey)
+                ? xKey
+                : dataKeys.find(k => typeof data[0][k] === 'string' && k !== 'id') || dataKeys[0];
+
+        const numericKey =
+            yKey && dataKeys.includes(yKey) && typeof data[0][yKey] === 'number'
+                ? yKey
+                : undefined;
+
+        const aggregated = aggregateByKey(data, groupKey, numericKey);
+
+        return aggregated.map(row => ({
+            [groupKey]: row.label,
+            count: row.count,
+            ...(numericKey ? { [numericKey]: row.sum } : {}),
+        }));
+    }, [data, dataKeys, isChart, xKey, yKey]);
+
+    const resolvedXKey = useMemo(() => {
+        if (!isChart || chartData.length === 0) return '';
+        const keys = Object.keys(chartData[0]);
+        if (xKey && keys.includes(xKey)) return xKey;
+        return keys.find(k => k !== 'count') || keys[0];
+    }, [chartData, isChart, xKey]);
+
+    const resolvedYKey = useMemo(() => {
+        if (!isChart || chartData.length === 0) return 'count';
+        if (yKey && Object.keys(chartData[0]).includes(yKey)) return yKey;
+        return 'count';
+    }, [chartData, isChart, yKey]);
 
     if (loading) {
         return (
@@ -133,29 +199,15 @@ export default function QueryResult({
         );
     }
 
-    // Auto-detect keys for charts
-    const dataKeys = Object.keys(data[0] || {});
-    const actualXKey = xKey && dataKeys.includes(xKey) ? xKey : dataKeys.find(k => typeof data[0][k] === 'string') || dataKeys[0];
-    const actualYKey = yKey && dataKeys.includes(yKey) ? yKey : dataKeys.find(k => typeof data[0][k] === 'number') || dataKeys[1];
-
-    // Process data for charts (ensure numeric values)
-    const processedData = data.map(item => ({
-        ...item,
-        [actualYKey]: Number(item[actualYKey]) || 0
-    }));
-
-    console.log('QueryResult: Rendering', { displayType, dataCount: data.length, actualXKey, actualYKey });
-
-    // Render chart based on displayType
     if (displayType === 'bar') {
         return (
             <div className="bg-white p-6 rounded-lg shadow-lg my-4">
                 {title && <h3 className="text-lg font-bold mb-4 text-gray-800">{title}</h3>}
                 <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={processedData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                         <XAxis
-                            dataKey={actualXKey}
+                            dataKey={resolvedXKey}
                             stroke="#666"
                             angle={-45}
                             textAnchor="end"
@@ -163,14 +215,14 @@ export default function QueryResult({
                             interval={0}
                             tick={{ fontSize: 11 }}
                         />
-                        <YAxis stroke="#666" />
+                        <YAxis stroke="#666" allowDecimals={false} />
                         <Tooltip
                             contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px' }}
-                            formatter={(value) => [Number(value).toLocaleString(), actualYKey]}
+                            formatter={(value) => [Number(value).toLocaleString(), resolvedYKey]}
                         />
                         <Legend />
-                        <Bar dataKey={actualYKey} fill="#8884d8" radius={[8, 8, 0, 0]}>
-                            {processedData.map((_, index) => (
+                        <Bar dataKey={resolvedYKey} fill="#8884d8" radius={[8, 8, 0, 0]}>
+                            {chartData.map((_, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                         </Bar>
@@ -185,13 +237,13 @@ export default function QueryResult({
             <div className="bg-white p-6 rounded-lg shadow-lg my-4">
                 {title && <h3 className="text-lg font-bold mb-4 text-gray-800">{title}</h3>}
                 <ResponsiveContainer width="100%" height={350}>
-                    <LineChart data={processedData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                        <XAxis dataKey={actualXKey} stroke="#666" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
-                        <YAxis stroke="#666" />
+                        <XAxis dataKey={resolvedXKey} stroke="#666" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
+                        <YAxis stroke="#666" allowDecimals={false} />
                         <Tooltip />
                         <Legend />
-                        <Line type="monotone" dataKey={actualYKey} stroke="#8884d8" strokeWidth={3} dot={{ r: 5 }} />
+                        <Line type="monotone" dataKey={resolvedYKey} stroke="#8884d8" strokeWidth={3} dot={{ r: 5 }} />
                     </LineChart>
                 </ResponsiveContainer>
             </div>
@@ -205,15 +257,15 @@ export default function QueryResult({
                 <ResponsiveContainer width="100%" height={350}>
                     <PieChart>
                         <Pie
-                            data={processedData}
-                            dataKey={actualYKey}
-                            nameKey={actualXKey}
+                            data={chartData}
+                            dataKey={resolvedYKey}
+                            nameKey={resolvedXKey}
                             cx="50%"
                             cy="50%"
                             outerRadius={120}
                             label={({ name, value }) => `${name}: ${value}`}
                         >
-                            {processedData.map((_, index) => (
+                            {chartData.map((_, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                         </Pie>
@@ -226,9 +278,11 @@ export default function QueryResult({
     }
 
     // Default: Table view
-    const displayColumns = columns ? columns.split(',').map(c => c.trim()) : dataKeys;
+    const displayColumns = columns
+        ? columns.split(',').map(c => c.trim()).filter(c => VALID_COLUMNS.has(c))
+        : dataKeys;
 
-    const formatValue = (value: any, col: string) => {
+    const formatValue = (value: unknown, col: string) => {
         if (value === null || value === undefined) return 'N/A';
 
         const isCurrencyField = ['price', 'revenue', 'total', 'value', 'amount', 'cost', 'profit', 'lifetime_value'].some(
