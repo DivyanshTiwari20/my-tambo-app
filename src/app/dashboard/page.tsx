@@ -377,6 +377,7 @@ export default function DashboardPage() {
   const [founderRaise, setFounderRaise] = useState("");
 
   const [bookmarked, setBookmarked] = useState<Set<string>>(new Set());
+  const [showBookmarks, setShowBookmarks] = useState(false);
 
   useEffect(() => {
     fetchAllVCs()
@@ -497,7 +498,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-white">
       {/* Navbar */}
       <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center gap-8">
+        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <span className="text-lg font-semibold tracking-tight text-gray-900">
             VCConnect
           </span>
@@ -508,6 +509,21 @@ export default function DashboardPage() {
             >
               Dashboard
             </Link>
+            <button
+              onClick={() => setShowBookmarks(!showBookmarks)}
+              className={`relative px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                showBookmarks
+                  ? "text-gray-900 bg-gray-100"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              Bookmarks
+              {bookmarked.size > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold bg-gray-900 text-white rounded-full flex items-center justify-center">
+                  {bookmarked.size}
+                </span>
+              )}
+            </button>
             <Link
               href="/chat"
               className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
@@ -697,10 +713,9 @@ export default function DashboardPage() {
                   isBookmarked={bookmarked.has(vc.id)}
                   onToggleBookmark={() => toggleBookmark(vc.id)}
                   onAskAI={() => {
-                    const prompt = encodeURIComponent(
-                      `Tell me about ${vc.firm} and their partner ${vc.name}. What is their investment thesis, portfolio, and how do they typically work with founders?`,
-                    );
-                    router.push(`/chat?prompt=${prompt}`);
+                    const prompt = `Tell me about ${vc.name} from ${vc.firm} and should I pitch them?`;
+                    sessionStorage.setItem("vcconnect-ask-ai-prompt", prompt);
+                    router.push("/chat");
                   }}
                   hasContext={hasFounderContext}
                 />
@@ -709,6 +724,78 @@ export default function DashboardPage() {
           )}
         </main>
       </div>
+
+      {/* Floating chat button */}
+      <Link
+        href="/chat"
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-gray-900 text-white rounded-full shadow-lg hover:bg-gray-800 transition-colors flex items-center justify-center"
+        aria-label="Open Chat"
+      >
+        <Sparkles className="w-5 h-5" />
+      </Link>
+
+      {/* Bookmarks slide-over */}
+      {showBookmarks && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+            onClick={() => setShowBookmarks(false)}
+          />
+          <div className="fixed top-0 right-0 z-50 h-full w-full max-w-md bg-white border-l border-gray-200 shadow-xl flex flex-col">
+            <div className="flex items-center justify-between px-5 h-14 border-b border-gray-200 shrink-0">
+              <h2 className="text-sm font-semibold text-gray-900">
+                Bookmarked VCs ({bookmarked.size})
+              </h2>
+              <button
+                onClick={() => setShowBookmarks(false)}
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {bookmarked.size === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                  <Bookmark className="w-8 h-8 mb-3" />
+                  <p className="text-sm">No bookmarked VCs yet</p>
+                  <p className="text-xs mt-1">
+                    Click the bookmark icon on any card to save it here
+                  </p>
+                </div>
+              ) : (
+                vcs
+                  .filter((vc) => bookmarked.has(vc.id))
+                  .map((vc) => {
+                    const matchPercent = calculateMatch(vc, {
+                      sector: founderSector,
+                      stage: founderStage,
+                      raiseAmount: founderRaise,
+                    });
+                    return (
+                      <VCCard
+                        key={vc.id}
+                        vc={vc}
+                        matchPercent={matchPercent}
+                        isBookmarked={true}
+                        onToggleBookmark={() => toggleBookmark(vc.id)}
+                        onAskAI={() => {
+                          const prompt = `Tell me about ${vc.name} from ${vc.firm} and should I pitch them?`;
+                          sessionStorage.setItem(
+                            "vcconnect-ask-ai-prompt",
+                            prompt,
+                          );
+                          router.push("/chat");
+                        }}
+                        hasContext={hasFounderContext}
+                      />
+                    );
+                  })
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

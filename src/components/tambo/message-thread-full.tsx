@@ -31,9 +31,26 @@ import {
   ThreadHistorySearch,
 } from "@/components/tambo/thread-history";
 import { useMergeRefs } from "@/lib/thread-hooks";
-import type { Suggestion } from "@tambo-ai/react";
+import { useTamboThreadInput, type Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
+
+function PreloadedPromptInjector() {
+  const { setValue } = useTamboThreadInput();
+  const injected = React.useRef(false);
+
+  React.useEffect(() => {
+    if (injected.current) return;
+    const prompt = sessionStorage.getItem("vcconnect-ask-ai-prompt");
+    if (prompt) {
+      injected.current = true;
+      sessionStorage.removeItem("vcconnect-ask-ai-prompt");
+      setTimeout(() => setValue(prompt), 150);
+    }
+  }, [setValue]);
+
+  return null;
+}
 
 /**
  * Props for the MessageThreadFull component
@@ -117,6 +134,7 @@ export const MessageThreadFull = React.forwardRef<
         className={className}
         {...props}
       >
+        <PreloadedPromptInjector />
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
             <ThreadContentMessages />

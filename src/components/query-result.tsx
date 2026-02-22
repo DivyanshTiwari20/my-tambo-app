@@ -31,6 +31,134 @@ function sanitizeColumns(cols: string | undefined): string {
     return parsed.length > 0 ? parsed.join(',') : '*';
 }
 
+interface ParsedFilter {
+    column: string;
+    operator: string;
+    value: string;
+}
+
+function parseFilters(raw: string | undefined): ParsedFilter[] {
+    if (!raw) return [];
+    const filters: ParsedFilter[] = [];
+
+    for (const segment of raw.split('&')) {
+        const eqIdx = segment.indexOf('=');
+        if (eqIdx <= 0) continue;
+
+        const column = segment.slice(0, eqIdx).trim();
+        if (!VALID_COLUMNS.has(column)) continue;
+
+        const rest = segment.slice(eqIdx + 1);
+        const dotIdx = rest.indexOf('.');
+        if (dotIdx <= 0) continue;
+
+        filters.push({
+            column,
+            operator: rest.slice(0, dotIdx).toLowerCase(),
+            value: rest.slice(dotIdx + 1),
+        });
+    }
+
+    return filters;
+}
+
+function coerceValue(value: string, column: string): unknown {
+    if (column === 'recently_active' || value === 'true') return true;
+    if (value === 'false') return false;
+    if (value === 'null') return null;
+    const num = Number(value);
+    if (!isNaN(num) && value.trim() !== '') return num;
+    return value;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyFilters(query: any, filters: ParsedFilter[]) {
+    for (const f of filters) {
+        try {
+            switch (f.operator) {
+                case 'eq':
+                    query = query.eq(f.column, coerceValue(f.value, f.column));
+                    break;
+                case 'neq':
+                    query = query.neq(f.column, coerceValue(f.value, f.column));
+                    break;
+                case 'gt':
+                    query = query.gt(f.column, Number(f.value));
+                    break;
+                case 'lt':
+                    query = query.lt(f.column, Number(f.value));
+                    break;
+                case 'gte':
+                    query = query.gte(f.column, Number(f.value));
+                    break;
+                case 'lte':
+                    query = query.lte(f.column, Number(f.value));
+                    break;
+                case 'like':
+                    query = query.like(f.column, f.value);
+                    break;
+                case 'ilike':
+                    query = query.ilike(f.column, f.value);
+                    break;
+                case 'is':
+                    query = query.is(f.column, f.value === 'true' ? true : f.value === 'false' ? false : null);
+                    break;
+                case 'in': {
+                    const items = f.value.replace(/^\(|\)$/g, '').split(',').map(v => v.trim());
+                    query = query.in(f.column, items);
+                    break;
+                }
+            }
+        } catch {
+            // skip filter that can't be applied
+        }
+    }
+    return query;
+}
+
+function clientSideMatch(row: Record<string, unknown>, filters: ParsedFilter[]): boolean {
+    for (const f of filters) {
+        const val = row[f.column];
+        const strVal = String(val ?? '').toLowerCase();
+        const target = f.value.toLowerCase();
+
+        switch (f.operator) {
+            case 'eq':
+                if (typeof val === 'boolean') {
+                    if (val !== (f.value === 'true')) return false;
+                } else if (strVal !== target) return false;
+                break;
+            case 'neq':
+                if (strVal === target) return false;
+                break;
+            case 'ilike':
+            case 'like': {
+                const pattern = target.replace(/%/g, '.*').replace(/\*/g, '.*');
+                if (!new RegExp(pattern, 'i').test(strVal)) return false;
+                break;
+            }
+            case 'gt':
+                if (Number(val) <= Number(f.value)) return false;
+                break;
+            case 'lt':
+                if (Number(val) >= Number(f.value)) return false;
+                break;
+            case 'gte':
+                if (Number(val) < Number(f.value)) return false;
+                break;
+            case 'lte':
+                if (Number(val) > Number(f.value)) return false;
+                break;
+            case 'is':
+                if (f.value === 'true' && val !== true) return false;
+                if (f.value === 'false' && val !== false) return false;
+                if (f.value === 'null' && val !== null) return false;
+                break;
+        }
+    }
+    return true;
+}
+
 function aggregateByKey(
     rows: Record<string, unknown>[],
     groupKey: string,
@@ -66,72 +194,70 @@ export default function QueryResult({
 }: QueryResultProps) {
     const [data, setData] = useState<Record<string, unknown>[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     const isChart = displayType === 'bar' || displayType === 'line' || displayType === 'pie';
+    const parsedFilters = useMemo(() => parseFilters(filter), [filter]);
 
     useEffect(() => {
+        let cancelled = false;
+
         const fetchData = async () => {
+            setLoading(true);
+
+            const selectCols = isChart ? '*' : sanitizeColumns(columns);
+            const fetchLimit = isChart ? 1000 : Math.max(limit, 50);
+
+            // Attempt 1: query with all filters applied server-side
             try {
-                setLoading(true);
-                setError(null);
-
-                const selectCols = isChart ? '*' : sanitizeColumns(columns);
-                const fetchLimit = isChart ? 1000 : limit;
-
                 let query = getSupabase().from(table).select(selectCols);
 
                 if (orderBy && VALID_COLUMNS.has(orderBy)) {
                     query = query.order(orderBy, { ascending: orderDirection === 'asc' });
                 }
-
                 query = query.limit(fetchLimit);
-
-                if (filter) {
-                    const eqIdx = filter.indexOf('=');
-                    if (eqIdx > 0) {
-                        const column = filter.slice(0, eqIdx).trim();
-                        const opValue = filter.slice(eqIdx + 1);
-                        const dotIdx = opValue.indexOf('.');
-
-                        if (dotIdx > 0 && VALID_COLUMNS.has(column)) {
-                            const operator = opValue.slice(0, dotIdx);
-                            const value = opValue.slice(dotIdx + 1);
-
-                            if (operator === 'eq') {
-                                query = query.eq(column, value === 'true' ? true : value === 'false' ? false : value);
-                            } else if (operator === 'gt') {
-                                query = query.gt(column, Number(value));
-                            } else if (operator === 'lt') {
-                                query = query.lt(column, Number(value));
-                            } else if (operator === 'gte') {
-                                query = query.gte(column, Number(value));
-                            } else if (operator === 'lte') {
-                                query = query.lte(column, Number(value));
-                            }
-                        }
-                    }
-                }
+                query = applyFilters(query, parsedFilters);
 
                 const { data: result, error: queryError } = await query;
-
-                if (queryError) {
-                    throw new Error(queryError.message);
+                if (!queryError && result && !cancelled) {
+                    setData(result as Record<string, unknown>[]);
+                    setLoading(false);
+                    return;
                 }
-
-                setData((result as Record<string, unknown>[]) || []);
-            } catch (err) {
-                console.error('QueryResult: Error', err);
-                setError(err instanceof Error ? err.message : 'Failed to fetch data');
-            } finally {
-                setLoading(false);
+            } catch {
+                // fall through to fallback
             }
+
+            // Attempt 2: fetch all data unfiltered, filter client-side
+            try {
+                let query = getSupabase().from(table).select('*');
+                if (orderBy && VALID_COLUMNS.has(orderBy)) {
+                    query = query.order(orderBy, { ascending: orderDirection === 'asc' });
+                }
+                query = query.limit(fetchLimit);
+
+                const { data: result } = await query;
+                if (!cancelled) {
+                    const rows = (result as Record<string, unknown>[]) || [];
+                    const filtered = parsedFilters.length > 0
+                        ? rows.filter(row => clientSideMatch(row, parsedFilters))
+                        : rows;
+                    setData(filtered);
+                }
+            } catch {
+                if (!cancelled) setData([]);
+            }
+
+            if (!cancelled) setLoading(false);
         };
 
         if (table) {
             fetchData();
+        } else {
+            setLoading(false);
         }
-    }, [table, columns, orderBy, orderDirection, limit, filter, isChart]);
+
+        return () => { cancelled = true; };
+    }, [table, columns, orderBy, orderDirection, limit, filter, isChart, parsedFilters]);
 
     const dataKeys = useMemo(() => Object.keys(data[0] || {}), [data]);
 
@@ -175,17 +301,8 @@ export default function QueryResult({
             <div className="bg-white p-6 rounded-lg shadow-lg my-4">
                 <div className="flex items-center justify-center h-32">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    <span className="ml-3 text-gray-600">Loading {table} data...</span>
+                    <span className="ml-3 text-gray-600">Loading data...</span>
                 </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="bg-red-50 p-6 rounded-lg shadow-lg my-4 border border-red-200">
-                <h3 className="text-red-800 font-bold">Error</h3>
-                <p className="text-red-600">{error}</p>
             </div>
         );
     }
@@ -194,7 +311,9 @@ export default function QueryResult({
         return (
             <div className="bg-white p-6 rounded-lg shadow-lg my-4">
                 {title && <h3 className="text-lg font-bold mb-4 text-gray-800">{title}</h3>}
-                <p className="text-gray-500 text-center">No data found in {table}</p>
+                <p className="text-gray-500 text-center">
+                    No matching data found. Try adjusting your query or filters.
+                </p>
             </div>
         );
     }
@@ -282,6 +401,8 @@ export default function QueryResult({
         ? columns.split(',').map(c => c.trim()).filter(c => VALID_COLUMNS.has(c))
         : dataKeys;
 
+    const safeDisplayColumns = displayColumns.length > 0 ? displayColumns : dataKeys;
+
     const formatValue = (value: unknown, col: string) => {
         if (value === null || value === undefined) return 'N/A';
 
@@ -308,7 +429,7 @@ export default function QueryResult({
                     <table className="min-w-full divide-y divide-gray-300">
                         <thead className="bg-gradient-to-r from-blue-500 to-blue-600">
                             <tr>
-                                {displayColumns.map(col => (
+                                {safeDisplayColumns.map(col => (
                                     <th key={col} className="px-6 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">
                                         {col.replace(/_/g, ' ')}
                                     </th>
@@ -318,7 +439,7 @@ export default function QueryResult({
                         <tbody className="bg-white divide-y divide-gray-200">
                             {data.map((row, i) => (
                                 <tr key={i} className="hover:bg-blue-50 transition-colors">
-                                    {displayColumns.map(col => (
+                                    {safeDisplayColumns.map(col => (
                                         <td key={col} className="px-6 py-4 text-sm text-gray-900 font-medium">
                                             {formatValue(row[col], col)}
                                         </td>
