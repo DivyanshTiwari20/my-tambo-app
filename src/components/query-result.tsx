@@ -219,7 +219,7 @@ export default function QueryResult({
 
                 const { data: result, error: queryError } = await query;
                 if (!queryError && result && !cancelled) {
-                    setData(result as Record<string, unknown>[]);
+                    setData(result as unknown as Record<string, unknown>[]);
                     setLoading(false);
                     return;
                 }
@@ -237,7 +237,7 @@ export default function QueryResult({
 
                 const { data: result } = await query;
                 if (!cancelled) {
-                    const rows = (result as Record<string, unknown>[]) || [];
+                    const rows = (result as unknown as Record<string, unknown>[]) || [];
                     const filtered = parsedFilters.length > 0
                         ? rows.filter(row => clientSideMatch(row, parsedFilters))
                         : rows;
