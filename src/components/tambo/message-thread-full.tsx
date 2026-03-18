@@ -117,37 +117,39 @@ export const MessageThreadFull = React.forwardRef<
         className={className}
         {...props}
       >
-        <ScrollableMessageContainer className="p-4">
-          <ThreadContent variant={variant}>
-            <ThreadContentMessages />
-          </ThreadContent>
-        </ScrollableMessageContainer>
+        <div className="flex flex-col h-full w-full max-w-4xl mx-auto">
+          <ScrollableMessageContainer className="p-4">
+            <ThreadContent variant={variant}>
+              <ThreadContentMessages />
+            </ThreadContent>
+          </ScrollableMessageContainer>
 
-        {/* Message suggestions status */}
-        <MessageSuggestions>
-          <MessageSuggestionsStatus />
-        </MessageSuggestions>
+          {/* Message suggestions status */}
+          <MessageSuggestions>
+            <MessageSuggestionsStatus />
+          </MessageSuggestions>
 
-        {/* Message input */}
-        <div className="px-4 pb-4">
-          <MessageInput>
-            <MessageInputTextarea placeholder="Type your message or paste images..." />
-            <MessageInputToolbar>
-              <MessageInputFileButton />
-              <MessageInputMcpPromptButton />
-              <MessageInputMcpResourceButton />
-              {/* Uncomment this to enable client-side MCP config modal button */}
-              <MessageInputMcpConfigButton />
-              <MessageInputSubmitButton />
-            </MessageInputToolbar>
-            <MessageInputError />
-          </MessageInput>
+          {/* Message input */}
+          <div className="px-4 pb-4">
+            <MessageInput>
+              <MessageInputTextarea placeholder="Type your message or paste images..." />
+              <MessageInputToolbar>
+                <MessageInputFileButton />
+                <MessageInputMcpPromptButton />
+                <MessageInputMcpResourceButton />
+                {/* Uncomment this to enable client-side MCP config modal button */}
+                <MessageInputMcpConfigButton />
+                <MessageInputSubmitButton />
+              </MessageInputToolbar>
+              <MessageInputError />
+            </MessageInput>
+          </div>
+
+          {/* Message suggestions */}
+          <MessageSuggestions initialSuggestions={defaultSuggestions}>
+            <MessageSuggestionsList />
+          </MessageSuggestions>
         </div>
-
-        {/* Message suggestions */}
-        <MessageSuggestions initialSuggestions={defaultSuggestions}>
-          <MessageSuggestionsList />
-        </MessageSuggestions>
       </ThreadContainer>
 
       {/* Thread History Sidebar - rendered last if history is on the right */}

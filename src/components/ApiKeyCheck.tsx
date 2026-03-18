@@ -1,14 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface ApiKeyCheckProps {
   children: React.ReactNode;
 }
 
+export const TAMBO_API_KEY_STORAGE_KEY = "tambo_api_key";
+
+export function getStoredTamboApiKey(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem(TAMBO_API_KEY_STORAGE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
 const ApiKeyMissingAlert = () => (
   <div className="mb-4 p-6 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
-    <p className="mb-3">To get started, you need to initialize Tambo:</p>
+    <p className="mb-3">To get started, you need a Tambo API key:</p>
     <div className="flex items-center gap-2 bg-gray-100 p-3 rounded mb-3">
       <code className="text-sm flex-grow">npx tambo init</code>
       <CopyButton text="npx tambo init" />
@@ -23,8 +34,7 @@ const ApiKeyMissingAlert = () => (
       >
         tambo.co/cli-auth
       </a>{" "}
-      to get your API key and set it in{" "}
-      <code className="bg-yellow-100 px-2 py-1 rounded">.env.local</code>
+      to get your API key.
     </p>
   </div>
 );
@@ -82,18 +92,102 @@ const CopyButton = ({ text }: { text: string }) => {
 };
 
 export function ApiKeyCheck({ children }: ApiKeyCheckProps) {
-  const isApiKeyMissing = !process.env.NEXT_PUBLIC_TAMBO_API_KEY;
+  const [apiKey, setApiKey] = useState<string>("");
+  const [inputValue, setInputValue] = useState<string>("");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    try {
+      const saved = localStorage.getItem(TAMBO_API_KEY_STORAGE_KEY) ?? "";
+      setApiKey(saved);
+      setInputValue(saved);
+    } catch {
+      // Ignore storage access errors (e.g. privacy mode)
+    }
+  }, []);
+
+  const isApiKeyMissing = useMemo(() => !apiKey?.trim(), [apiKey]);
+
+  const saveKey = () => {
+    const next = inputValue.trim();
+    setApiKey(next);
+    try {
+      if (next) {
+        localStorage.setItem(TAMBO_API_KEY_STORAGE_KEY, next);
+      } else {
+        localStorage.removeItem(TAMBO_API_KEY_STORAGE_KEY);
+      }
+      window.dispatchEvent(new Event("tambo_api_key_updated"));
+    } catch {
+      // Ignore
+    }
+  };
+
+  const clearKey = () => {
+    setInputValue("");
+    setApiKey("");
+    try {
+      localStorage.removeItem(TAMBO_API_KEY_STORAGE_KEY);
+      window.dispatchEvent(new Event("tambo_api_key_updated"));
+    } catch {
+      // Ignore
+    }
+  };
+
+  // Avoid hydration mismatch while we read localStorage.
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="flex items-start gap-4">
       <div className="flex-grow">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <div className="min-w-6">{isApiKeyMissing ? "❌" : "✅"}</div>
-          <p>
-            {isApiKeyMissing ? "Tambo not initialized" : "Tambo initialized"}
+          <p className="font-medium">
+            {isApiKeyMissing ? "Tambo key required" : "Tambo key set for this browser"}
           </p>
         </div>
+
         {isApiKeyMissing && <ApiKeyMissingAlert />}
+
+        <div className="mt-4 rounded-lg border border-border bg-background p-4">
+          <label className="block text-sm font-medium mb-2" htmlFor="tambo-api-key">
+            Tambo API key (stored only in your browser)
+          </label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              id="tambo-api-key"
+              type="password"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="tambo_..."
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              autoComplete="off"
+              inputMode="text"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={saveKey}
+                className="rounded-md bg-black text-white px-3 py-2 text-sm hover:opacity-90"
+              >
+                Save
+              </button>
+              <button
+                onClick={clearKey}
+                className="rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            If you deploy this app publicly, requiring users to bring their own key prevents everyone
+            from sharing the same conversation history.
+          </p>
+        </div>
+
         {!isApiKeyMissing && children}
       </div>
     </div>

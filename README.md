@@ -66,13 +66,16 @@ npm install
 
 ### 3. Set up environment variables
 
-Create a `.env.local` file in the root directory:
+The app requires specific environment variables to function properly. There is no UI prompt for the API key, so you **must** supply it in the `.env` file before running the application.
+
+Create a `.env.local` or `.env` file in the root directory and add the following:
 
 ```env
-# Tambo AI Configuration
+# Tambo AI Configuration (REQUIRED for chat to work)
+# Get your API key for free at https://tambo.co/dashboard
 NEXT_PUBLIC_TAMBO_API_KEY=your_tambo_api_key_here
 
-# Supabase Configuration
+# Supabase Configuration (REQUIRED for database queries)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
