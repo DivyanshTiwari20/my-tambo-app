@@ -48,57 +48,48 @@ export default function DataTable({ columns, data, title }: DataTableProps) {
         return String(value);
     };
 
-    // Debug log
-    console.log('DataTable received:', { originalData: data, processedData: safeData, columns: displayColumns });
-
     return (
         <div className="w-full my-4">
-            {title && <h3 className="text-lg font-bold mb-3 text-gray-800">{title}</h3>}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-300">
-                        <thead className="bg-gradient-to-r from-blue-500 to-blue-600">
+            {title && <h3 className="text-sm font-semibold mb-2 text-gray-700">{title}</h3>}
+            <div className="overflow-x-auto border border-gray-300 rounded">
+                <table className="min-w-full border-collapse text-sm">
+                    <thead>
+                        <tr className="bg-gray-100 border-b border-gray-300">
+                            {displayColumns.map(col => (
+                                <th
+                                    key={col}
+                                    className="px-3 py-2 text-left font-medium text-gray-700 border-r border-gray-300 last:border-r-0"
+                                >
+                                    {col.replace(/_/g, ' ')}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {safeData.length === 0 ? (
                             <tr>
-                                {displayColumns.map(col => (
-                                    <th
-                                        key={col}
-                                        className="px-6 py-4 text-left text-sm font-bold text-white uppercase tracking-wider"
-                                    >
-                                        {col.replace(/_/g, ' ')}
-                                    </th>
-                                ))}
+                                <td colSpan={displayColumns.length || 1} className="px-3 py-4 text-center text-gray-500 text-sm">
+                                    No data found
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {safeData.length === 0 ? (
-                                <tr>
-                                    <td colSpan={displayColumns.length || 1} className="px-6 py-8 text-center text-gray-500">
-                                        No data found
-                                    </td>
+                        ) : (
+                            safeData.map((row, i) => (
+                                <tr key={i} className={`border-b border-gray-200 last:border-b-0 ${i % 2 === 1 ? 'bg-gray-50/50' : 'bg-white'}`}>
+                                    {displayColumns.map(col => (
+                                        <td
+                                            key={col}
+                                            className="px-3 py-2 text-gray-900 border-r border-gray-200 last:border-r-0"
+                                        >
+                                            {formatValue(row[col], col)}
+                                        </td>
+                                    ))}
                                 </tr>
-                            ) : (
-                                safeData.map((row, i) => (
-                                    <tr key={i} className="hover:bg-blue-50 transition-colors">
-                                        {displayColumns.map(col => (
-                                            <td
-                                                key={col}
-                                                className="px-6 py-4 text-sm text-gray-900 font-medium"
-                                            >
-                                                {formatValue(row[col], col)}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-                <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
-                    <p className="text-sm text-gray-600">
-                        Showing <span className="font-semibold">{safeData.length}</span> {safeData.length === 1 ? 'row' : 'rows'}
-                    </p>
-                </div>
+                            ))
+                        )}
+                    </tbody>
+                </table>
             </div>
+            <p className="text-xs text-gray-500 mt-1">Showing {safeData.length} {safeData.length === 1 ? 'row' : 'rows'}</p>
         </div>
     );
 }

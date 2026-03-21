@@ -7,16 +7,16 @@ export const components = [
     name: "QueryResult",
     description: `Displays data from the user's connected Supabase database.
     
-IMPORTANT: You do NOT know which tables or columns exist. Before using this component,
-always call the "get-available-tables" tool first to discover the actual database schema.
+IMPORTANT: Always call "get-available-tables" FIRST to discover the actual schema. Never guess table/column names.
 
-This component fetches data from a single table using simple select/filter/order/limit operations.
-For charts (pie, bar, line), this component will automatically plot the data you fetch.
-If a user asks for aggregated data (like counts or sums) and you cannot write raw SQL, 
-you should fetch the raw rows (using a high limit if necessary) and let the chart component 
-display the distribution.
+For PIE charts (e.g. male vs female, category breakdowns):
+- Option A: Query a table with a category column (e.g. gender). Select that column, use high limit. Rows will be aggregated by category and counted.
+- Option B: If the table has separate columns per category (e.g. male_users, female_users), select those columns. The chart will show one slice per column.
+- Never use pie when you only have one value/category—it will show "Not enough categories".
 
-Use displayType 'table' for data tables, 'bar' for bar charts, 'line' for trends, 'pie' for proportions.`,
+For BAR/LINE: Select category column as xKey, numeric column as yKey (or let auto-detect choose).
+
+Use displayType: 'table' (Excel-style grid), 'bar', 'line', or 'pie'.`,
     component: QueryResult,
     propsSchema: z.object({
       table: z

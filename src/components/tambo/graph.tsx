@@ -77,23 +77,8 @@ class GraphErrorBoundary extends React.Component<
   render(): React.ReactNode {
     if (this.state.hasError) {
       return (
-        <div
-          className={cn(
-            graphVariants({
-              variant: this.props.variant,
-              size: this.props.size,
-            }),
-            this.props.className,
-          )}
-        >
-          <div className="p-4 flex items-center justify-center h-full">
-            <div className="text-destructive text-center">
-              <p className="font-medium">Error loading chart</p>
-              <p className="text-sm mt-1">
-                An error occurred while rendering. Please try again.
-              </p>
-            </div>
-          </div>
+        <div className={cn(graphVariants({ variant: this.props.variant, size: this.props.size }), this.props.className)}>
+          <p className="p-4 text-sm text-destructive">Chart could not be rendered.</p>
         </div>
       );
     }
@@ -230,16 +215,8 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
 
     if (!hasValidStructure) {
       return (
-        <div
-          ref={ref}
-          className={cn(graphVariants({ variant, size }), className)}
-          {...props}
-        >
-          <div className="p-4 h-full flex items-center justify-center">
-            <div className="text-muted-foreground text-center">
-              <p className="text-sm">Building chart...</p>
-            </div>
-          </div>
+        <div ref={ref} className={cn(graphVariants({ variant, size }), className)} {...props}>
+          <p className="p-4 text-sm text-muted-foreground">Data not available for chart.</p>
         </div>
       );
     }
@@ -255,16 +232,8 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
 
     if (validDatasets.length === 0) {
       return (
-        <div
-          ref={ref}
-          className={cn(graphVariants({ variant, size }), className)}
-          {...props}
-        >
-          <div className="p-4 h-full flex items-center justify-center">
-            <div className="text-muted-foreground text-center">
-              <p className="text-sm">Preparing datasets...</p>
-            </div>
-          </div>
+        <div ref={ref} className={cn(graphVariants({ variant, size }), className)} {...props}>
+          <p className="p-4 text-sm text-muted-foreground">Data not available for chart.</p>
         </div>
       );
     }

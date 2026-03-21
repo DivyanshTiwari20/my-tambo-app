@@ -25,60 +25,57 @@ export default function DataChart({ data, xKey, yKey, type = 'bar', title }: Dat
     // Filter out null/empty objects
     safeData = safeData.filter(row => row && Object.keys(row).length > 0);
 
-    // Debug: Log the data to help identify issues
-    console.log('DataChart received:', { originalData: data, processedData: safeData, xKey, yKey, type });
-
-    // If no data or empty, show message
     if (safeData.length === 0) {
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-lg my-4">
-                {title && <h3 className="text-lg font-bold mb-4 text-gray-800">{title}</h3>}
-                <div className="flex items-center justify-center h-64 text-gray-500">
-                    No data available for chart
-                </div>
-            </div>
-        );
+        return <p className="text-gray-500 text-sm py-2 my-2">No data available for chart.</p>;
     }
 
-    // Auto-detect keys if provided keys don't exist in data
     const dataKeys = Object.keys(safeData[0] || {});
-    const actualXKey = dataKeys.includes(xKey) ? xKey : dataKeys[0] || 'name';
-    const actualYKey = dataKeys.includes(yKey) ? yKey : dataKeys.find(k => typeof safeData[0][k] === 'number') || dataKeys[1] || 'value';
+    const numericCols = dataKeys.filter(k => typeof safeData[0][k] === 'number');
+    const stringCols = dataKeys.filter(k => typeof safeData[0][k] === 'string');
+    const actualXKey = dataKeys.includes(xKey) ? xKey : stringCols[0] || dataKeys[0] || 'name';
+    const actualYKey = dataKeys.includes(yKey) ? yKey : numericCols[0] || dataKeys[1] || 'value';
 
-    // Ensure numeric values for yKey
-    const processedData = safeData.map(item => ({
+    let processedData: { name: string; value: number; [k: string]: unknown }[] = safeData.map(item => ({
         ...item,
         [actualYKey]: Number(item[actualYKey]) || 0
-    }));
-
-    console.log('DataChart processed:', { processedData, actualXKey, actualYKey });
+    })) as { name: string; value: number; [k: string]: unknown }[];
 
     if (type === 'pie') {
+        const isWideFormat = safeData.length <= 2 && numericCols.length >= 2;
+        let pieData: { name: string; value: number }[];
+        if (isWideFormat) {
+            const sums: Record<string, number> = {};
+            numericCols.forEach(col => { sums[col] = 0; });
+            safeData.forEach(row => numericCols.forEach(col => { sums[col] += Number(row[col]) || 0; }));
+            pieData = Object.entries(sums)
+                .map(([col, value]) => ({ name: col.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), value }))
+                .filter(d => d.value > 0);
+        } else {
+            const agg = new Map<string, number>();
+            safeData.forEach(item => {
+                const cat = String(item[actualXKey] ?? 'Unknown').trim();
+                const val = Number(item[actualYKey]);
+                agg.set(cat, (agg.get(cat) || 0) + (isNaN(val) ? 1 : val));
+            });
+            pieData = Array.from(agg.entries()).map(([name, value]) => ({ name, value })).filter(d => d.value > 0).sort((a, b) => b.value - a.value);
+        }
+        if (pieData.length < 2) {
+            return <p className="text-gray-500 text-sm py-2 my-2">Not enough categories for pie chart (need at least 2).</p>;
+        }
+        const total = pieData.reduce((s, d) => s + d.value, 0);
         return (
-            <div className="bg-white p-6 rounded-lg shadow-lg my-4">
+            <div className="bg-white p-6 rounded-lg shadow my-4">
                 {title && <h3 className="text-lg font-bold mb-4 text-gray-800">{title}</h3>}
-                <div className="flex justify-center">
-                    <ResponsiveContainer width="100%" height={350}>
-                        <PieChart>
-                            <Pie
-                                data={processedData}
-                                dataKey={actualYKey}
-                                nameKey={actualXKey}
-                                cx="50%"
-                                cy="50%"
-                                outerRadius={120}
-                                label={({ name, value }) => `${name}: ${value}`}
-                                labelLine={true}
-                            >
-                                {processedData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip formatter={(value) => [value, actualYKey]} />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={350}>
+                    <PieChart>
+                        <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120}
+                            label={({ name, value }) => `${name}: ${value} (${total ? Math.round((value / total) * 100) : 0}%)`}>
+                            {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip formatter={(val: number) => [val, '']} />
+                        <Legend />
+                    </PieChart>
+                </ResponsiveContainer>
             </div>
         );
     }
