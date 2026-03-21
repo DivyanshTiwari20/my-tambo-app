@@ -17,6 +17,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Focal - Chat with your database.",
   description: "Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English to get instant answers, charts, and insights. No SQL needed.",
+  verification: {
+    google: "9KuTRf3pcPOtam4LDn10hjzD9iBfXaQXc42ncz3adqA",
+  },
   openGraph: {
     title: "Focal - Chat with your database.",
     description: "Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English to get instant answers, charts, and insights.",
