@@ -9,17 +9,16 @@ const STORAGE_KEYS = {
 } as const;
 
 export function getCredentials() {
-  if (typeof window === "undefined") return { supabaseUrl: "", supabaseAnonKey: "", tamboApiKey: "" };
+  if (typeof window === "undefined") return { supabaseUrl: "", supabaseAnonKey: "" };
   return {
     supabaseUrl: localStorage.getItem(STORAGE_KEYS.supabaseUrl) ?? "",
     supabaseAnonKey: localStorage.getItem(STORAGE_KEYS.supabaseAnonKey) ?? "",
-    tamboApiKey: localStorage.getItem(STORAGE_KEYS.tamboApiKey) ?? "",
   };
 }
 
 export function hasAllCredentials(): boolean {
   const creds = getCredentials();
-  return !!(creds.supabaseUrl.trim() && creds.supabaseAnonKey.trim() && creds.tamboApiKey.trim());
+  return !!(creds.supabaseUrl.trim() && creds.supabaseAnonKey.trim());
 }
 
 /** Fires whenever credentials change */
@@ -29,27 +28,24 @@ export default function SettingsModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
-  const [tamboApiKey, setTamboApiKey] = useState("");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     const creds = getCredentials();
     setSupabaseUrl(creds.supabaseUrl);
     setSupabaseAnonKey(creds.supabaseAnonKey);
-    setTamboApiKey(creds.tamboApiKey);
   }, [isOpen]);
 
   const handleSave = useCallback(() => {
     localStorage.setItem(STORAGE_KEYS.supabaseUrl, supabaseUrl.trim());
     localStorage.setItem(STORAGE_KEYS.supabaseAnonKey, supabaseAnonKey.trim());
-    localStorage.setItem(STORAGE_KEYS.tamboApiKey, tamboApiKey.trim());
     window.dispatchEvent(new Event(CREDENTIALS_UPDATED_EVENT));
     setSaved(true);
     setTimeout(() => {
       setSaved(false);
       setIsOpen(false);
     }, 1200);
-  }, [supabaseUrl, supabaseAnonKey, tamboApiKey]);
+  }, [supabaseUrl, supabaseAnonKey]);
 
   // Close on Escape
   useEffect(() => {
@@ -169,23 +165,7 @@ export default function SettingsModal() {
                 />
               </div>
 
-              {/* Tambo API Key */}
-              <div>
-                <label htmlFor="settings-tambo-key" className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Tambo API Key
-                </label>
-                <input
-                  id="settings-tambo-key"
-                  type="password"
-                  value={tamboApiKey}
-                  onChange={(e) => setTamboApiKey(e.target.value)}
-                  placeholder="your tambo api key"
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400
-                             placeholder:text-gray-400 transition-all"
-                  autoComplete="off"
-                />
-              </div>
+              {/* Removed Tambo API Key field as per user request */}
 
               <p className="text-xs text-gray-400 leading-relaxed">
                 All credentials are stored only in your browser&apos;s localStorage. They are never sent to our servers.

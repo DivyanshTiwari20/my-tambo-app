@@ -27,18 +27,22 @@ export default function Home() {
   const mcpServers = useMcpServers();
 
   const [credentialsReady, setCredentialsReady] = React.useState(false);
-  const [tamboApiKey, setTamboApiKey] = React.useState("");
+  const [sessionKey, setSessionKey] = React.useState("");
   const [mounted, setMounted] = React.useState(false);
 
   // Read credentials on mount & whenever they change
   const refreshCredentials = React.useCallback(() => {
-    const creds = getCredentials();
-    setTamboApiKey(creds.tamboApiKey);
     setCredentialsReady(hasAllCredentials());
   }, []);
 
   React.useEffect(() => {
     setMounted(true);
+    let key = localStorage.getItem("tambo_browser_session");
+    if (!key) {
+      key = "sess_" + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem("tambo_browser_session", key);
+    }
+    setSessionKey(key);
     refreshCredentials();
     window.addEventListener(CREDENTIALS_UPDATED_EVENT, refreshCredentials);
     return () =>
@@ -83,11 +87,12 @@ export default function Home() {
         )}
 
         <TamboProvider
-          apiKey={tamboApiKey || process.env.NEXT_PUBLIC_TAMBO_API_KEY || ""}
+          apiKey="proxy-managed-by-server"
           components={components}
           tools={tools}
-          tamboUrl={process.env.NEXT_PUBLIC_TAMBO_URL}
+          tamboUrl="/api/tambo"
           mcpServers={mcpServers}
+          contextKey={sessionKey}
         >
           <div className={`h-full ${!credentialsReady ? "pointer-events-none opacity-50 select-none" : ""}`}>
             <MessageThreadFull />
