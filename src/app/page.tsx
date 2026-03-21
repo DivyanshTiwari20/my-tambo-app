@@ -1,125 +1,252 @@
 import Link from "next/link";
+import {
+  MessageSquare,
+  BarChart3,
+  Database,
+  Zap,
+  Sparkles,
+  CheckCircle2,
+  ArrowRight,
+  TrendingUp,
+  PieChart,
+  LayoutDashboard,
+  Heart,
+  Shield
+} from "lucide-react";
 
 export default function Home() {
-  const repoUrl = "https://github.com/DivyanshTiwari20/my-tambo-app";
-
   return (
-    <div className="bg-white text-black font-sans selection:bg-black selection:text-white antialiased overflow-x-hidden min-h-screen">
-      
-      <div className="flex flex-col lg:flex-row w-full relative">
-        
-        {/* Left Half: Sticky Animation / Video */}
-        <div className="w-full lg:w-1/2 lg:sticky lg:top-0 h-[40vh] lg:h-screen flex flex-col items-center justify-center relative group bg-white lg:border-r border-gray-100 z-10">
-          {/* Subtle premium glow effect behind the video */}
-          <div className="absolute inset-0 bg-blue-50/40 rounded-full blur-3xl scale-110 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-          
-          <video 
-            autoPlay 
-            loop 
-            muted 
-            playsInline 
-            className="w-full max-w-xs md:max-w-sm rounded-[2rem] object-contain drop-shadow-lg border border-gray-100 bg-white relative z-20 transition-transform duration-500 hover:scale-[1.03]"
-          >
-            <source src="/cat%20Mark%20loading.webm" type="video/webm" />
-            Your browser does not support the video tag.
-          </video>
+    <div className="bg-[#FCFAF8] text-stone-800 font-serif selection:bg-[#FFDCCF] selection:text-[#FF5A36] antialiased overflow-x-hidden min-h-screen">
+
+
+      {/* ── 1. HERO SECTION (OPENNOTE STYLE) ── */}
+      <section className="relative px-6 pt-12 pb-12 md:pt-16 md:pb-16 w-full flex flex-col items-center text-center overflow-hidden">
+
+        {/* Floating Doodles / Characters Background */}
+        <div className="absolute inset-0 z-0 pointer-events-none max-w-[1400px] mx-auto w-full">
+          <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Sam&backgroundColor=transparent"
+            alt=""
+            className="absolute left-[2%] md:left-[5%] top-[5%] md:top-[10%] w-24 h-24 sm:w-32 sm:h-32 md:w-56 md:h-56 opacity-[0.08] grayscale -rotate-12" />
+
+          <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Lucy&backgroundColor=transparent"
+            alt=""
+            className="absolute right-[-5%] md:right-[2%] top-[10%] md:top-[15%] w-28 h-28 sm:w-40 sm:h-40 md:w-64 md:h-64 opacity-[0.08] grayscale rotate-12" />
+
+          <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Oscar&backgroundColor=transparent"
+            alt=""
+            className="absolute left-[-5%] md:left-[10%] bottom-[5%] w-20 h-20 sm:w-28 sm:h-28 md:w-48 md:h-48 opacity-[0.08] grayscale rotate-6" />
+
+          <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Mimi&backgroundColor=transparent"
+            alt=""
+            className="absolute right-[5%] md:right-[8%] bottom-[5%] md:bottom-[10%] w-24 h-24 sm:w-32 sm:h-32 md:w-56 md:h-56 opacity-[0.08] grayscale -rotate-[15deg] hidden md:block" />
         </div>
 
-        {/* Right Half: Scrolling Content */}
-        <div className="w-full lg:w-1/2 flex flex-col z-0">
-          
-          {/* SECTION 1: Intro Text */}
-          <section className="min-h-screen flex flex-col justify-center p-8 md:p-12 lg:p-16 pt-12 lg:pt-0">
-            <div className="w-full max-w-2xl mx-auto space-y-10">
-              <div className="space-y-6">
-                <h1 className="text-5xl md:text-6xl xl:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-500 pb-2">
-                  SQL Query <br /> Builder.
-                </h1>
-                <p className="text-xl md:text-2xl text-gray-600 font-medium leading-relaxed">
-                  Transform natural language into powerful database queries and beautiful automated data visualizations instantly.
-                </p>
-                <p className="text-base md:text-lg text-gray-500">
-                  Simply ask straightforward questions in plain English. The AI dynamically handles the database querying and builds the perfect chart for your request on the fly.
-                </p>
+        <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center">
+          {/* Top Centered Illustration */}
+          <div className="relative z-10 mb-12 flex justify-center items-center mt-8">
+            <div className="relative group w-48 h-48 bg-white border border-stone-200 rounded-[2rem] shadow-sm transform flex flex-col justify-center items-center hover:-translate-y-1 transition-transform duration-500">
+              <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#FF5A36] rounded-full flex justify-center items-center animate-bounce shadow-lg shadow-[#FF5A36]/30">
+                <Sparkles className="text-white w-6 h-6" />
               </div>
-
-              <div className="flex flex-col sm:flex-row gap-5 pt-4">
-                <Link
-                  href="/chat"
-                  className="group relative inline-flex items-center justify-center space-x-3 text-lg font-semibold bg-black text-white px-8 py-4 rounded-full overflow-hidden transition-all hover:shadow-[0_0_20px_rgba(0,0,0,0.2)] hover:-translate-y-0.5"
-                >
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                  <span>Get Started Now</span>
-                  <span className="group-hover:translate-x-1.5 transition-transform duration-300">
-                    →
-                  </span>
-                </Link>
-                
-                <a
-                  href={repoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center space-x-2 text-lg font-semibold text-gray-700 bg-gray-50 border border-gray-200 px-8 py-4 rounded-full hover:bg-gray-100 hover:text-black transition-all hover:-translate-y-0.5"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd"></path>
-                  </svg>
-                  <span>View GitHub Repo</span>
-                  <span aria-hidden>↗</span>
-                </a>
-              </div>
-
-              <div className="pt-8 text-sm font-medium text-gray-400 flex items-center gap-3">
-                <span className="w-8 h-[1px] bg-gray-300"></span>
-                <p className="animate-pulse">Scroll down for more</p>
+              <Database className="w-16 h-16 text-stone-800 mb-4 stroke-[1.5]" />
+              <div className="flex gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-stone-300 relative group-hover:bg-rose-300"></div>
+                <div className="w-2 h-2 rounded-full bg-stone-300 relative group-hover:bg-amber-300"></div>
+                <div className="w-2 h-2 rounded-full bg-[#FF5A36] relative"></div>
               </div>
             </div>
-          </section>
+          </div>
 
-          {/* SECTION 2: How It Works */}
-          <section className="min-h-screen flex items-center p-8 md:p-12 lg:p-16 bg-zinc-50 border-t border-zinc-200">
-            <div className="w-full max-w-2xl mx-auto space-y-12 py-12">
-              <div className="space-y-6">
-                <h2 className="text-4xl md:text-5xl font-bold tracking-tight">How it Works</h2>
-                <p className="text-xl text-gray-600">
-                  The AI interprets your intent, securely queries your connected integration, and dynamically renders the most appropriate component to display your results perfectly.
-                </p>
-              </div>
+          {/* Large Elegant Title */}
+          <h1 className="text-5xl md:text-7xl font-serif tracking-tight text-stone-900 max-w-4xl mb-8 leading-[1.1] z-10">
+            Chat with your database.<br />
+            <span className="text-stone-800">No SQL Needed.</span>
+          </h1>
 
-              <div className="flex flex-col gap-6">
-                <div className="p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                  <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center text-xl font-bold mb-6">1</div>
-                  <h3 className="text-xl font-bold mb-3">Ask Freely</h3>
-                  <p className="text-gray-600 leading-relaxed">Type your query into the chat interface. Example: "Show me the top 5 largest orders this month."</p>
-                </div>
-                
-                <div className="p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                  <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center text-xl font-bold mb-6">2</div>
-                  <h3 className="text-xl font-bold mb-3">AI Analyzes</h3>
-                  <p className="text-gray-600 leading-relaxed">The AI parses your request and translates the plain English directly into optimized, robust SQL.</p>
-                </div>
+          {/* Kept Content (Subtext) */}
+          <p className="text-lg md:text-xl text-stone-500 max-w-2xl mb-12 leading-relaxed font-medium z-10">
+            Connect your database and get instant insights, charts, and answers in plain English.
+            It's friendly, fast, and built so anyone can understand their data.
+          </p>
 
-                <div className="p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                  <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center text-xl font-bold mb-6">3</div>
-                  <h3 className="text-xl font-bold mb-3">Visualize</h3>
-                  <p className="text-gray-600 leading-relaxed">The application dynamically fetches your data and renders an interactive, visually stunning chart.</p>
+          {/* Main Action Area */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto z-10 justify-center items-center relative">
+            <Link
+              href="/chat"
+              className="bg-stone-900 text-white px-8 py-4 rounded-xl font-medium text-lg hover:bg-stone-800 transition-all hover:scale-105 shadow-xl shadow-stone-900/10 flex items-center justify-center gap-2"
+            >
+              Try for free <ArrowRight className="w-5 h-5 opacity-70" />
+            </Link>
+          </div>
+
+          {/* Subtle orange accent kept as requested */}
+          <div className="mt-6 text-sm font-medium text-[#FF5A36] flex items-center gap-2 z-10 relative">
+            <CheckCircle2 className="w-4 h-4" /> No credit card required. Connect Supabase in 2 clicks.
+          </div>
+        </div>
+
+      </section>
+
+
+
+
+      {/* ── 4. HOW IT WORKS ── */}
+      <section id="how-it-works" className="py-12 md:py-16 bg-white border-y border-stone-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-stone-900 mb-6 leading-tight">
+                From connection to insights in 60 seconds.
+              </h2>
+              <p className="text-xl text-stone-500 font-medium mb-12">
+                We've stripped away the complexity. No engineering tickets, no complex dashboard builders.
+              </p>
+
+              <div className="space-y-8">
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-stone-900 text-white flex items-center justify-center font-bold flex-shrink-0">1</div>
+                  <div>
+                    <h4 className="text-xl font-bold text-stone-900 mb-2">Pop in your credentials</h4>
+                    <p className="text-stone-500 font-medium">Add your Supabase URL and Anon Key perfectly securely in the browser settings.</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="pt-8">
-                <Link
-                    href="/chat"
-                    className="group inline-flex items-center space-x-2 text-xl font-semibold text-black hover:text-gray-600 transition-colors"
-                  >
-                    <span className="border-b-2 border-transparent group-hover:border-gray-400 pb-1 transition-all">Experience it now</span>
-                    <span className="group-hover:translate-x-2 transition-transform duration-300">→</span>
-                  </Link>
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-stone-900 text-white flex items-center justify-center font-bold flex-shrink-0">2</div>
+                  <div>
+                    <h4 className="text-xl font-bold text-stone-900 mb-2">Ask a simple question</h4>
+                    <p className="text-stone-500 font-medium">Type anything—"How many users signed up this week?" or "Show me revenue by category".</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-full bg-[#FF5A36] text-white flex items-center justify-center font-bold flex-shrink-0 shadow-lg shadow-orange-500/30">3</div>
+                  <div>
+                    <h4 className="text-xl font-bold text-stone-900 mb-2">Get answers instantly</h4>
+                    <p className="text-stone-500 font-medium">The AI maps your schema, runs the right queries, and builds a beautiful chart right in the chat.</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </section>
+
+            <div className="relative">
+              {/* Decorative abstract shape */}
+              <div className="absolute inset-0 bg-rose-100 rounded-[2rem] sm:rounded-[3rem] rotate-3 scale-[1.03] sm:scale-105 z-0"></div>
+              <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-xl border border-stone-100 relative z-10 flex flex-col gap-4">
+                <div className="flex gap-3 items-center pb-4 border-b border-stone-100">
+                  <div className="w-12 h-12 bg-stone-100 rounded-full overflow-hidden">
+                    <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=f5f5f5" alt="Avatar" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-stone-900">Sarah from Marketing</div>
+                    <div className="text-sm text-stone-400">Just now</div>
+                  </div>
+                </div>
+                <div className="bg-stone-50 rounded-2xl p-4 text-stone-700 font-medium">
+                  Show me the monthly revenue growth for the US region.
+                </div>
+                <div className="bg-[#FCFAF8] rounded-2xl p-6 border border-stone-200 mt-2">
+                  <div className="flex items-center gap-2 mb-4 text-[#FF5A36] font-bold">
+                    <TrendingUp className="w-5 h-5" /> Revenue Trend
+                  </div>
+                  {/* Fake UI Chart */}
+                  <div className="h-32 w-full border-b-2 border-l-2 border-stone-200 relative flex items-end justify-around pb-2">
+                    <div className="w-8 bg-blue-200 rounded-t h-[30%]"></div>
+                    <div className="w-8 bg-blue-300 rounded-t h-[50%]"></div>
+                    <div className="w-8 bg-blue-400 rounded-t h-[70%]"></div>
+                    <div className="w-8 bg-blue-500 rounded-t h-[90%]"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. TESTIMONIAL / CTA ── */}
+      <section className="py-12 md:py-16 px-6">
+        <div className="max-w-6xl mx-auto bg-[#FF5A36] rounded-[2rem] p-10 md:p-16 relative overflow-hidden flex flex-col md:flex-row items-center gap-12 md:gap-8 shadow-sm">
+
+          {/* Left Side: Content */}
+          <div className="w-full md:w-1/2 text-left z-10 md:pr-10">
+            <h2 className="text-4xl md:text-5xl font-serif text-stone-900 mb-6 font-bold leading-tight tracking-tight">
+              Data analytics that feel like magic.
+            </h2>
+            <p className="text-xl md:text-2xl text-stone-900/80 mb-10 font-medium leading-relaxed font-serif">
+              "We used to wait days for the data team to build a simple dashboard. Now anyone on the team can just ask the database a question."
+            </p>
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <Link href="/chat" className="bg-stone-900 text-white px-8 py-4 rounded-xl font-medium text-lg hover:bg-stone-800 transition-all font-sans">
+                Try for free
+              </Link>
+            </div>
+          </div>
+
+          {/* Right Side: Hand-drawn Avatars (Notionists) */}
+          <div className="w-full md:w-1/2 relative flex items-end justify-center z-10 h-64 md:h-80">
+            {/* Fun decorative accents matching the image */}
+            <div className="absolute top-4 left-10 text-stone-900 text-2xl font-black rotate-12">✧</div>
+            <div className="absolute top-12 right-20 text-stone-900 text-xl font-black -rotate-12">×</div>
+            <div className="absolute bottom-16 right-4 text-stone-900 text-3xl font-black rotate-45">≈</div>
+
+            <div className="flex items-end justify-center w-full relative">
+              <img
+                src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=transparent"
+                alt="Team Member"
+                className="w-24 h-24 sm:w-32 sm:h-32 md:w-56 md:h-56 -mr-8 sm:-mr-12 md:-mr-16 z-10 drop-shadow-md"
+              />
+              <img
+                src="https://api.dicebear.com/7.x/notionists/svg?seed=Annie&backgroundColor=transparent"
+                alt="Team Member"
+                className="w-32 h-32 sm:w-40 sm:h-40 md:w-72 md:h-72 z-20 pb-2 md:pb-4 drop-shadow-xl"
+              />
+              <img
+                src="https://api.dicebear.com/7.x/notionists/svg?seed=Jude&backgroundColor=transparent"
+                alt="Team Member"
+                className="w-24 h-24 sm:w-32 sm:h-32 md:w-56 md:h-56 -ml-8 sm:-ml-12 md:-ml-16 z-10 drop-shadow-md"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* ── 10. FOOTER (OPENNOTE DOODLE STYLE) ── */}
+      <footer className="relative bg-white pt-16 pb-8 px-6 overflow-hidden border-t border-stone-100 mt-12 flex flex-col justify-end min-h-[350px]">
+        {/* Minimal Sketchy Doodle Background */}
+        <div className="absolute inset-0 z-0 opacity-[0.05] grayscale pointer-events-none flex items-center justify-between px-2 md:px-12">
+          <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Physics&backgroundColor=transparent" className="w-[180px] h-[180px] sm:w-[250px] sm:h-[250px] md:w-[400px] md:h-[400px] -rotate-12 translate-y-12" alt="" />
+          <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Frog&backgroundColor=transparent" className="w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[450px] md:h-[450px] rotate-6 translate-y-20 hidden md:block" alt="" />
+          <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Code&backgroundColor=transparent" className="w-[180px] h-[180px] sm:w-[250px] sm:h-[250px] md:w-[400px] md:h-[400px] -rotate-6 translate-y-12" alt="" />
+        </div>
+
+        {/* Foreground Content */}
+        <div className="relative z-10 w-full flex flex-col items-center justify-end h-full">
+
+          {/* Solo Founder Bio Block */}
+          <div className="bg-white/80 backdrop-blur-xl border border-stone-200 p-8 rounded-[2rem] shadow-sm text-center mb-12 max-w-lg mx-auto w-full transition-all hover:bg-white hover:shadow-md">
+            <div className="w-16 h-16 mx-auto bg-stone-100 rounded-full border border-stone-200 mb-4 overflow-hidden shadow-sm">
+              <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Divyansh&backgroundColor=fefefe" alt="Divyansh Tiwari" className="w-full h-full object-cover scale-110" />
+            </div>
+            <h3 className="font-serif font-bold text-2xl text-stone-900 mb-2">Built by Divyansh Tiwari</h3>
+            {/* <p className="text-stone-500 font-medium mb-6 leading-relaxed">
+                 Tambo is a passion project built by a solo indie hacker. I'm building tools to make data analytics simple and conversational for everyone.
+               </p> */}
+
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-bold">
+              <a href="https://divyanshh.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-stone-700 hover:text-[#FF5A36] transition-colors border-b-2 border-transparent hover:border-[#FF5A36] pb-1">Portfolio</a>
+              <a href="https://x.com/divyansh_ai" target="_blank" rel="noopener noreferrer" className="text-stone-700 hover:text-[#FF5A36] transition-colors border-b-2 border-transparent hover:border-[#FF5A36] pb-1">X (Twitter)</a>
+              <a href="https://www.linkedin.com/in/divyansh-tiwari-47b2082aa" target="_blank" rel="noopener noreferrer" className="text-stone-700 hover:text-[#FF5A36] transition-colors border-b-2 border-transparent hover:border-[#FF5A36] pb-1">LinkedIn</a>
+              <a href="mailto:divyanshtwork@gmail.com" className="text-stone-700 hover:text-[#FF5A36] transition-colors border-b-2 border-transparent hover:border-[#FF5A36] pb-1">Email</a>
+            </div>
+          </div>
+
+          {/* Simple Floating Copyright referencing the bare UI look of the image */}
+          <div className="bg-white/60 px-6 py-2 rounded-full text-stone-500 font-medium text-sm flex items-center justify-center backdrop-blur-sm">
+            © {new Date().getFullYear()}  All rights reserved.
+          </div>
 
         </div>
-      </div>
+      </footer>
+
     </div>
   );
 }
