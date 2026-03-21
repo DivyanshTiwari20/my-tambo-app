@@ -90,7 +90,7 @@ export default function Home() {
           apiKey="proxy-managed-by-server"
           components={components}
           tools={tools}
-          tamboUrl="/api/tambo"
+          tamboUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/api/tambo`}
           mcpServers={mcpServers}
           contextKey={sessionKey}
         >
