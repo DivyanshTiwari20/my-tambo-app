@@ -246,7 +246,7 @@ export default function QueryResult({
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                         </Pie>
-                        <Tooltip formatter={(val: number) => [val, '']} />
+                        <Tooltip formatter={(val) => [val ?? 0, '']} />
                         <Legend />
                     </PieChart>
                 </ResponsiveContainer>

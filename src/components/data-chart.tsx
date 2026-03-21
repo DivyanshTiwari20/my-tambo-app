@@ -72,7 +72,7 @@ export default function DataChart({ data, xKey, yKey, type = 'bar', title }: Dat
                             label={({ name, value }) => `${name}: ${value} (${total ? Math.round((value / total) * 100) : 0}%)`}>
                             {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                         </Pie>
-                        <Tooltip formatter={(val: number) => [val, '']} />
+                        <Tooltip formatter={(val) => [val ?? 0, '']} />
                         <Legend />
                     </PieChart>
                 </ResponsiveContainer>
