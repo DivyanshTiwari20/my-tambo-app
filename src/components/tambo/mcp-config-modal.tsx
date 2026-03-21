@@ -36,15 +36,8 @@ export const McpConfigModal = ({
   onClose: () => void;
   className?: string;
 }) => {
-  // Initialize from localStorage directly to avoid conflicts
-  const [mcpServers, setMcpServers] = React.useState<McpServerInfo[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      return JSON.parse(localStorage.getItem("mcp-servers") ?? "[]");
-    } catch {
-      return [];
-    }
-  });
+  // Initialize empty to avoid hydration mismatch, load in useEffect
+  const [mcpServers, setMcpServers] = React.useState<McpServerInfo[]>([]);
   const [serverUrl, setServerUrl] = React.useState("");
   const [serverName, setServerName] = React.useState("");
   const [transportType, setTransportType] = React.useState<MCPTransport>(
@@ -52,6 +45,16 @@ export const McpConfigModal = ({
   );
   const [savedSuccess, setSavedSuccess] = React.useState(false);
   const [showInstructions, setShowInstructions] = React.useState(false);
+
+  // Load from localStorage after mount
+  React.useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("mcp-servers") ?? "[]");
+      setMcpServers(saved);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Handle Escape key to close modal
   React.useEffect(() => {
@@ -479,27 +482,28 @@ export type McpServer = string | { url: string };
  * ```
  */
 export function useMcpServers(): McpServer[] {
-  const [servers, setServers] = React.useState<McpServer[]>(() => {
-    if (typeof window === "undefined") return [];
+  // Initialize empty to avoid hydration mismatch
+  const [servers, setServers] = React.useState<McpServer[]>([]);
 
+  // Load from localStorage after mount
+  React.useEffect(() => {
     const savedServersData = localStorage.getItem("mcp-servers");
-    if (!savedServersData) return [];
+    if (!savedServersData) return;
 
     try {
-      const servers = JSON.parse(savedServersData);
-      // Deduplicate servers by URL to prevent multiple tool registrations
+      const parsed = JSON.parse(savedServersData);
       const uniqueUrls = new Set();
-      return servers.filter((server: McpServer) => {
+      const deduped = parsed.filter((server: McpServer) => {
         const url = typeof server === "string" ? server : server.url;
         if (uniqueUrls.has(url)) return false;
         uniqueUrls.add(url);
         return true;
       });
+      setServers(deduped);
     } catch (e) {
       console.error("Failed to parse saved MCP servers", e);
-      return [];
     }
-  });
+  }, []);
 
   React.useEffect(() => {
     const updateServers = () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { getSupabase } from '@/lib/supabase';
+import { getCredentials } from '@/components/settings-modal';
 import { BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ResponsiveContainer } from 'recharts';
 
 interface QueryResultProps {
@@ -43,54 +43,30 @@ export default function QueryResult({
 
                 console.log('QueryResult: Starting fetch for table:', table);
 
-                // Build query using Supabase client
-                let query = getSupabase().from(table).select(columns || '*');
-
-                // Add ordering
-                if (orderBy) {
-                    query = query.order(orderBy, { ascending: orderDirection === 'asc' });
+                const creds = getCredentials();
+                if (!creds.supabaseUrl || !creds.supabaseAnonKey) {
+                    throw new Error('Supabase credentials not configured. Please add them in Settings.');
                 }
 
-                // Add limit
-                if (limit) {
-                    query = query.limit(limit);
+                const res = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        supabaseUrl: creds.supabaseUrl,
+                        supabaseKey: creds.supabaseAnonKey,
+                        userQuery: { table, columns, orderBy, orderDirection, limit, filter },
+                    }),
+                });
+
+                const json = await res.json();
+
+                console.log('QueryResult: Fetch complete', json);
+
+                if (!res.ok || json.error) {
+                    throw new Error(json.error || 'Failed to fetch data');
                 }
 
-                // Add filter if provided (format: column=eq.value)
-                if (filter) {
-                    const parts = filter.split('=');
-                    if (parts.length === 2) {
-                        const column = parts[0];
-                        const opValue = parts[1];
-                        const opParts = opValue.split('.');
-                        if (opParts.length >= 2) {
-                            const operator = opParts[0];
-                            const value = opParts.slice(1).join('.');
-
-                            if (operator === 'eq') {
-                                query = query.eq(column, value === 'true' ? true : value === 'false' ? false : value);
-                            } else if (operator === 'gt') {
-                                query = query.gt(column, Number(value));
-                            } else if (operator === 'lt') {
-                                query = query.lt(column, Number(value));
-                            } else if (operator === 'gte') {
-                                query = query.gte(column, Number(value));
-                            } else if (operator === 'lte') {
-                                query = query.lte(column, Number(value));
-                            }
-                        }
-                    }
-                }
-
-                const { data: result, error: queryError } = await query;
-
-                console.log('QueryResult: Fetch complete', { result, error: queryError });
-
-                if (queryError) {
-                    throw new Error(queryError.message);
-                }
-
-                setData(result || []);
+                setData(json.data || []);
             } catch (err) {
                 console.error('QueryResult: Error', err);
                 setError(err instanceof Error ? err.message : 'Failed to fetch data');
