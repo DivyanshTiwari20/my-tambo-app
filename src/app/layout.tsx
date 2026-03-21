@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Focal - Chat with your database.",
     description: "Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English to get instant answers, charts, and insights.",
-    url: "https://your-focal-app.com",
+    url: "https://focal-chat.vercel.app",
     siteName: "Focal",
     type: "website",
   },
@@ -42,6 +43,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
