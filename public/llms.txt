@@ -1,0 +1,15 @@
+# Focal
+
+Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English.
+Users can ask questions like "What items sold the most in the last 3 months?" and get instant answers, charts, and insights without needing any SQL knowledge.
+
+## Core Features
+1. Instant Database Connection: Connect standard databases like Supabase in 2 clicks.
+2. Plain English Queries: No specialized languages needed to ask questions.
+3. Automatic Chart Generation: Instant visual insights rendering directly in the chat interface.
+
+## App Info
+- Name: Focal
+- Description: Chat with your database. No SQL needed.
+- Creator: Divyansh Tiwari
+- Built for: Founders, indie hackers, and non-technical teams who need quick data insights.

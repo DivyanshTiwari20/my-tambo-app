@@ -11,6 +11,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Focal - Chat with your database.",
+  description: "Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English to get instant answers, charts, and insights. No SQL needed.",
+  openGraph: {
+    title: "Focal - Chat with your database.",
+    description: "Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English to get instant answers, charts, and insights.",
+    url: "https://your-focal-app.com",
+    siteName: "Focal",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Focal - Chat with your database.",
+    description: "Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English to get instant answers, charts, and insights.",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

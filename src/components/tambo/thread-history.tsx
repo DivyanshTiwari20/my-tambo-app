@@ -199,7 +199,7 @@ const ThreadHistoryHeader = React.forwardRef<
             : "opacity-100 max-w-none transition-all duration-300 delay-75",
         )}
       >
-        Tambo Conversations
+        Conversations
       </h2>
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
@@ -483,12 +483,12 @@ const ThreadHistoryList = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          `text-sm text-destructive p-2 whitespace-nowrap ${isCollapsed ? "opacity-0 max-w-0 overflow-hidden" : "opacity-100"}`,
+          `text-sm text-muted-foreground p-2 whitespace-nowrap ${isCollapsed ? "opacity-0 max-w-0 overflow-hidden" : "opacity-100"}`,
           className,
         )}
         {...props}
       >
-        Error loading threads
+        You didn't have any conversation yet
       </div>
     );
   } else if (filteredThreads.length === 0) {
@@ -501,7 +501,7 @@ const ThreadHistoryList = React.forwardRef<
         )}
         {...props}
       >
-        {searchQuery ? "No matching threads" : "No previous threads"}
+        {searchQuery ? "No matching threads" : "You didn't have any conversation yet"}
       </div>
     );
   } else {
