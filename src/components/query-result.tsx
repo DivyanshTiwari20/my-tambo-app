@@ -93,9 +93,12 @@ export default function QueryResult({
 
     if (error) {
         return (
-            <div className="bg-red-50 p-6 rounded-lg shadow-lg my-4 border border-red-200">
-                <h3 className="text-red-800 font-bold">Error</h3>
-                <p className="text-red-600">{error}</p>
+            <div className="bg-amber-50/50 p-6 rounded-xl shadow-sm my-4 border border-amber-100 flex flex-col items-center justify-center text-center">
+                <div className="w-12 h-12 bg-amber-100/50 text-amber-500 rounded-full flex items-center justify-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <h3 className="text-amber-900 font-semibold mb-1">Information Unavailable</h3>
+                <p className="text-amber-700/80 text-sm max-w-md">We couldn't fetch what you were looking for. The data might not exist or the table was incorrect. You can ask me what tables are available to explore!</p>
             </div>
         );
     }
@@ -112,15 +115,49 @@ export default function QueryResult({
     // Auto-detect keys for charts
     const dataKeys = Object.keys(data[0] || {});
     const actualXKey = xKey && dataKeys.includes(xKey) ? xKey : dataKeys.find(k => typeof data[0][k] === 'string') || dataKeys[0];
-    const actualYKey = yKey && dataKeys.includes(yKey) ? yKey : dataKeys.find(k => typeof data[0][k] === 'number') || dataKeys[1];
+    const actualYKey = yKey && dataKeys.includes(yKey) ? yKey : dataKeys.find(k => typeof data[0][k] === 'number') || dataKeys[1] || dataKeys[0];
 
-    // Process data for charts (ensure numeric values)
-    const processedData = data.map(item => ({
+    // Process and aggressively aggregate data for charts to fix layout explosions
+    let processedData = data.map(item => ({
         ...item,
-        [actualYKey]: Number(item[actualYKey]) || 0
+        [actualYKey]: Number(item[actualYKey]) || 1 // Fallback so we can count
     }));
 
-    console.log('QueryResult: Rendering', { displayType, dataCount: data.length, actualXKey, actualYKey });
+    if (['bar', 'line', 'pie'].includes(displayType)) {
+        const aggregated = new Map<string, any>();
+        
+        processedData.forEach(item => {
+            const xVal = String(item[actualXKey] || 'Unknown');
+            if (!aggregated.has(xVal)) {
+                aggregated.set(xVal, { ...item, [actualXKey]: xVal, _tambo_count: 0 });
+            }
+            const current = aggregated.get(xVal);
+            current._tambo_count += 1;
+            
+            const yVal = Number(item[actualYKey]);
+            if (!isNaN(yVal)) {
+               current[actualYKey] = (current._tambo_count === 1) ? yVal : (current[actualYKey] + yVal);
+            }
+        });
+        
+        processedData = Array.from(aggregated.values());
+        
+        // If original actualYKey was a string/uuid, automatically switch graphing mode to absolute Counts
+        if (data.length > 0 && typeof data[0][actualYKey] !== 'number') {
+            processedData.forEach(item => {
+                item[actualYKey] = item._tambo_count;
+            });
+        }
+
+        // Clean aesthetic sorting
+        if (displayType === 'line' || displayType === 'bar') {
+           processedData.sort((a,b) => String(a[actualXKey]).localeCompare(String(b[actualXKey])));
+        } else if (displayType === 'pie') {
+           processedData.sort((a,b) => Number(b[actualYKey]) - Number(a[actualYKey]));
+        }
+    }
+
+    console.log('QueryResult: Rendering', { displayType, dataCount: processedData.length, actualXKey, actualYKey });
 
     // Render chart based on displayType
     if (displayType === 'bar') {

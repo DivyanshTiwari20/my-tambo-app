@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 // Using the standard Tambo AI backend base url
-const TAMBO_API_BASE = "https://api.tambo.ai";
+const TAMBO_API_BASE = "https://api.tambo.co";
 
 async function proxy(req: NextRequest) {
   // Extract the path segments after /api/tambo
@@ -12,11 +12,12 @@ async function proxy(req: NextRequest) {
   
   // Clone request headers and safely inject the hidden Developer API key
   const headers = new Headers(req.headers);
-  headers.set("host", "api.tambo.ai");
+  headers.set("host", "api.tambo.co");
   
   // We grab the key from process.env (even though it's currently named NEXT_PUBLIC...)
   const apiKey = process.env.NEXT_PUBLIC_TAMBO_API_KEY || "";
-  headers.set("authorization", `Bearer ${apiKey}`);
+  headers.set("x-api-key", apiKey);
+  headers.delete("authorization"); // clear any dummy bearer token the frontend might have sent
   
   // We must delete the proxy's origin/referer to avoid CORS issues on the Tambo servers
   headers.delete("origin");
