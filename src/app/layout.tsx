@@ -20,6 +20,7 @@ const inter = Inter({
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://my-tambo-app-liart.vercel.app"),
   title: "Tambo — AI Data Analyst & Conversational Analytics Platform",
   description: "Stop building dashboards. Tambo is an AI data analyst that lets teams explore live business data through conversation, real-time analysis, and instant chart generation.",
   verification: {
@@ -28,12 +29,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Tambo — Analytics Without Dashboards",
     description: "AI data analyst for modern teams. Explore business data through conversation, real-time analysis, and instant visual insights.",
-    url: "https://tambo.ai",
+    url: "https://my-tambo-app-liart.vercel.app",
     siteName: "Tambo",
     type: "website",
     images: [
       {
-        url: "https://tambo.ai/images/preview-img-tambo.png",
+        url: "/images/preview-img-tambo.png",
+        width: 1200,
+        height: 630,
+        alt: "Tambo — AI Data Analyst & Conversational Analytics Platform",
       },
     ],
   },
@@ -41,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tambo — Analytics Without Dashboards",
     description: "Stop building dashboards. Ask questions naturally and explore live business data instantly.",
-    images: ["https://tambo.ai/images/preview-img-tambo.png"],
+    images: ["/images/preview-img-tambo.png"],
   },
 };
 

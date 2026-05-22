@@ -59,10 +59,20 @@ export async function POST(req: NextRequest) {
     // ── Create a Supabase client with user-supplied credentials ──
     const supabase = createClient(validUrl, supabaseKey);
 
+    // ── Sanitize columns: strip trailing commas, empty segments, whitespace ──
+    const rawCols = userQuery.columns?.trim();
+    const sanitizedColumns = rawCols
+      ? rawCols
+          .split(",")
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0)
+          .join(",")
+      : "*";
+
     // ── Build the query ──
     let query = supabase
       .from(userQuery.table)
-      .select(userQuery.columns || "*");
+      .select(sanitizedColumns || "*");
 
     // Ordering
     if (userQuery.orderBy) {

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://focal-chat.vercel.app/sitemap.xml
+Sitemap: https://my-tambo-app-liart.vercel.app/sitemap.xml

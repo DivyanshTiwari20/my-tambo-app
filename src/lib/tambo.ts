@@ -5,69 +5,83 @@ import StatCard from "@/components/stat-card";
 export const components = [
   {
     name: "QueryResult",
-    description: `Displays data from the user's connected Supabase database.
-    
-IMPORTANT: Always call "get-available-tables" FIRST to discover the actual schema. Never guess table/column names.
+    description: `Displays data from the user's connected Supabase database as a table or chart.
 
-For PIE charts (e.g. male vs female, category breakdowns):
-- Option A: Query a table with a category column (e.g. gender). Select that column, use high limit. Rows will be aggregated by category and counted.
-- Option B: If the table has separate columns per category (e.g. male_users, female_users), select those columns. The chart will show one slice per column.
-- Never use pie when you only have one value/category—it will show "Not enough categories".
+STEP 1 — Always call "get-available-tables" first. Never guess table or column names.
 
-For BAR/LINE: Select category column as xKey, numeric column as yKey (or let auto-detect choose).
+STEP 2 — Choose displayType:
+- "table": Default. Use for raw data, lists, search results.
+- "bar": Use for comparisons across categories (e.g. revenue by city, users by plan).
+- "line": Use for trends over time (e.g. signups per month).
+- "pie": Use ONLY when there are 2–5 distinct categories and you want share/proportion. Never use pie for time-series or when categories exceed 6.
 
-Use displayType: 'table' (Excel-style grid), 'bar', 'line', or 'pie'.`,
+STEP 3 — For ANY chart (bar, line, pie), you MUST explicitly set:
+- xKey: the column representing categories or time (string/date column)
+- yKey: the column representing the numeric value (number column)
+Never leave these empty for charts — auto-detection will fail.
+
+STEP 4 — Limits:
+- For tables: limit 10–20 is fine.
+- For charts: use limit 50–200 so aggregation has enough data.
+- For pie: use limit 500+ since rows need to be grouped by category.
+
+STEP 5 — Aggregation warning:
+If the user asks for something like "revenue by month" or "users by city", note that this component displays raw rows — it does not run GROUP BY. If the table has a category column (e.g. "plan", "city", "gender"), select that column and a numeric column; the chart will aggregate counts. If the data needs SQL-level aggregation, tell the user the result may be approximate.
+
+NEVER use pie when only one category or value exists — it will render blank.`,
+
     component: QueryResult,
     propsSchema: z.object({
       table: z
         .string()
-        .describe(
-          "Table name to query. Must match a real table from get-available-tables."
-        ),
+        .describe("Table name. Must match exactly from get-available-tables."),
       columns: z
         .string()
         .optional()
         .describe(
-          "Comma-separated column names to display (e.g., 'name,price,category'). Leave empty for all."
+          "Comma-separated columns to fetch (e.g. 'name,price,category'). For charts, always include xKey and yKey columns. Leave empty only for simple table views."
         ),
-      orderBy: z
-        .string()
-        .optional()
-        .describe("Column to sort by"),
+      orderBy: z.string().optional().describe("Column to sort by."),
       orderDirection: z
         .enum(["asc", "desc"])
         .optional()
-        .describe("Sort direction: 'asc' or 'desc'"),
+        .describe("Sort direction."),
       limit: z
         .number()
         .optional()
-        .describe("Max rows to return (default 10)"),
+        .describe(
+          "Rows to fetch. Default 10 for tables. Use 100–500 for charts and pie so grouping works correctly."
+        ),
       filter: z
         .string()
         .optional()
         .describe(
-          "Filter in Supabase format: 'column=op.value' (e.g., 'is_premium=eq.true', 'price=gt.50')"
+          "Supabase filter: 'column=op.value'. Examples: 'status=eq.active', 'amount=gt.100', 'created_at=gte.2024-01-01'."
         ),
       displayType: z
         .enum(["table", "bar", "line", "pie"])
         .optional()
         .describe(
-          "How to display: 'table' (default), 'bar' chart, 'line' chart, or 'pie' chart"
+          "Visualization type. Default: 'table'. Use 'bar' for category comparisons, 'line' for time trends, 'pie' for 2–5 category proportions only."
         ),
       xKey: z
         .string()
         .optional()
-        .describe("For charts: column for X-axis (default: first column)"),
+        .describe(
+          "REQUIRED for charts. Column for X-axis or pie labels — usually a string/date column like 'city', 'plan', 'month'. Always set this explicitly when displayType is bar, line, or pie."
+        ),
       yKey: z
         .string()
         .optional()
         .describe(
-          "For charts: column for Y-axis (default: first numeric column)"
+          "REQUIRED for charts. Column for Y-axis or pie values — must be a numeric column like 'revenue', 'count', 'amount'. Always set this explicitly when displayType is bar, line, or pie."
         ),
       title: z
         .string()
         .optional()
-        .describe("Title to display above the result"),
+        .describe(
+          "Chart or table title shown above the result. Always set a clear, human-readable title."
+        ),
     }),
   },
 
