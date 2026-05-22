@@ -10,7 +10,7 @@ import Footer from '@/components/Footer';
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-white text-gray-950 overflow-x-hidden antialiased font-sans select-none">
+    <div className="relative min-h-screen bg-white text-gray-950 overflow-x-hidden antialiased font-inter select-none">
 
       {/* HEADER SECTION */}
       <Header />

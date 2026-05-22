@@ -6,6 +6,7 @@ import {
   type TamboThread,
   useTamboThread,
   useTamboThreadList,
+  useTamboClient,
 } from "@tambo-ai/react";
 import {
   ArrowLeftToLine,
@@ -15,8 +16,19 @@ import {
   PlusIcon,
   SearchIcon,
   Sparkles,
+  Trash2,
 } from "lucide-react";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /**
  * Context for sharing thread history state and functions
@@ -366,6 +378,7 @@ const ThreadHistoryList = React.forwardRef<
     searchQuery,
     currentThread,
     switchCurrentThread,
+    startNewThread,
     onThreadChange,
     updateThreadName,
     generateThreadName,
@@ -439,6 +452,8 @@ const ThreadHistoryList = React.forwardRef<
     }
   };
 
+  const tamboClient = useTamboClient();
+
   const handleRename = (thread: TamboThread) => {
     setEditingThread(thread);
     setNewName(thread.name ?? "");
@@ -450,6 +465,18 @@ const ThreadHistoryList = React.forwardRef<
       await refetch();
     } catch (error) {
       console.error("Failed to generate name:", error);
+    }
+  };
+
+  const handleDelete = async (thread: TamboThread) => {
+    try {
+      await tamboClient.beta.threads.delete(thread.id);
+      if (currentThread?.id === thread.id) {
+         startNewThread(); // switch away if we delete active thread
+      }
+      await refetch();
+    } catch (error) {
+      console.error("Failed to delete thread:", error);
     }
   };
 
@@ -562,6 +589,7 @@ const ThreadHistoryList = React.forwardRef<
               thread={thread}
               onRename={handleRename}
               onGenerateName={handleGenerateName}
+              onDelete={handleDelete}
             />
           </div>
         ))}
@@ -594,50 +622,91 @@ const ThreadOptionsDropdown = ({
   thread,
   onRename,
   onGenerateName,
+  onDelete,
 }: {
   thread: TamboThread;
   onRename: (thread: TamboThread) => void;
   onGenerateName: (thread: TamboThread) => void;
+  onDelete: (thread: TamboThread) => void;
 }) => {
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        <button
-          className="p-1 hover:bg-backdrop rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-        </button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          className="min-w-[160px] text-xs bg-popover rounded-md p-1 shadow-md border border-border"
-          sideOffset={5}
-          align="end"
-        >
-          <DropdownMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-foreground hover:bg-backdrop rounded-sm cursor-pointer outline-none transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRename(thread);
-            }}
+    <>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <button
+            className="p-1 hover:bg-backdrop rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Pencil className="h-3 w-3" />
-            Rename
-          </DropdownMenu.Item>
-          <DropdownMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-foreground hover:bg-backdrop rounded-sm cursor-pointer outline-none transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onGenerateName(thread);
-            }}
+            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            className="min-w-[160px] text-xs bg-popover rounded-md p-1 shadow-md border border-border"
+            sideOffset={5}
+            align="end"
           >
-            <Sparkles className="h-3 w-3" />
-            Generate Name
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+            <DropdownMenu.Item
+              className="flex items-center gap-2 px-2 py-1.5 text-foreground hover:bg-backdrop rounded-sm cursor-pointer outline-none transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRename(thread);
+              }}
+            >
+              <Pencil className="h-3 w-3" />
+              Rename
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              className="flex items-center gap-2 px-2 py-1.5 text-foreground hover:bg-backdrop rounded-sm cursor-pointer outline-none transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onGenerateName(thread);
+              }}
+            >
+              <Sparkles className="h-3 w-3" />
+              Generate Name
+            </DropdownMenu.Item>
+            <DropdownMenu.Separator className="h-px bg-border my-1" />
+            <DropdownMenu.Item
+              className="flex items-center gap-2 px-2 py-1.5 text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/50 rounded-sm cursor-pointer outline-none transition-colors"
+              onSelect={(e) => {
+                e.preventDefault();
+                setShowDeleteAlert(true);
+              }}
+            >
+              <Trash2 className="h-3 w-3" />
+              Delete
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this conversation and remove your data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(thread);
+                setShowDeleteAlert(false);
+              }}
+            >
+              Delete Conversation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

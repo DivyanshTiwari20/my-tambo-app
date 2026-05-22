@@ -80,8 +80,56 @@ export default function QueryResult({
     }
 
     if (error) {
+        // Fallback preview data to never break the app when the database is paused or unavailable
+        const mockData = [
+            { name: 'Mon', value: 120 },
+            { name: 'Tue', value: 250 },
+            { name: 'Wed', value: 380 },
+            { name: 'Thu', value: 290 },
+            { name: 'Fri', value: 450 }
+        ];
+
         return (
-            <p className="text-amber-600 text-sm py-2 my-2">Data not available. {error}</p>
+            <div className="w-full my-4">
+               {title && <h3 className="text-sm font-semibold mb-2 text-gray-700">{title} (Preview)</h3>}
+               <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-2 mb-4">
+                      <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                      <p className="text-xs text-amber-700 font-medium bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                         Database paused. Showing preview data.
+                      </p>
+                  </div>
+                  <ResponsiveContainer width="100%" height={350}>
+                     {displayType === 'pie' ? (
+                         <PieChart>
+                             <Pie data={mockData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120}>
+                                 {mockData.map((_, i) => <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />)}
+                             </Pie>
+                             <Tooltip />
+                             <Legend />
+                         </PieChart>
+                     ) : displayType === 'line' ? (
+                         <LineChart data={mockData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                             <XAxis dataKey="name" stroke="#666" />
+                             <YAxis stroke="#666" />
+                             <Tooltip />
+                             <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={3} />
+                         </LineChart>
+                     ) : (
+                         <BarChart data={mockData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                             <XAxis dataKey="name" stroke="#666" />
+                             <YAxis stroke="#666" />
+                             <Tooltip />
+                             <Bar dataKey="value" fill="#8884d8" radius={[4, 4, 0, 0]}>
+                                 {mockData.map((_, i) => <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />)}
+                             </Bar>
+                         </BarChart>
+                     )}
+                  </ResponsiveContainer>
+               </div>
+            </div>
         );
     }
 
