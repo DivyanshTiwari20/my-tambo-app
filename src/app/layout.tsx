@@ -15,22 +15,28 @@ const geistMono = Geist_Mono({
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Focal - Chat with your database.",
-  description: "Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English to get instant answers, charts, and insights. No SQL needed.",
+  title: "Tambo — AI Data Analyst & Conversational Analytics Platform",
+  description: "Stop building dashboards. Tambo is an AI data analyst that lets teams explore live business data through conversation, real-time analysis, and instant chart generation.",
   verification: {
     google: "9KuTRf3pcPOtam4LDn10hjzD9iBfXaQXc42ncz3adqA",
   },
   openGraph: {
-    title: "Focal - Chat with your database.",
-    description: "Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English to get instant answers, charts, and insights.",
-    url: "https://focal-chat.vercel.app",
-    siteName: "Focal",
+    title: "Tambo — Analytics Without Dashboards",
+    description: "AI data analyst for modern teams. Explore business data through conversation, real-time analysis, and instant visual insights.",
+    url: "https://tambo.ai",
+    siteName: "Tambo",
     type: "website",
+    images: [
+      {
+        url: "https://tambo.ai/images/preview-img-tambo.png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Focal - Chat with your database.",
-    description: "Focal is an AI-powered SaaS tool that allows users to connect their database and chat with it in plain English to get instant answers, charts, and insights.",
+    title: "Tambo — Analytics Without Dashboards",
+    description: "Stop building dashboards. Ask questions naturally and explore live business data instantly.",
+    images: ["https://tambo.ai/images/preview-img-tambo.png"],
   },
 };
 

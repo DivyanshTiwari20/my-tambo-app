@@ -2,10 +2,11 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Users, TrendingUp, Filter, BarChart, CircleDot, 
-  Send, Database, ArrowUpRight, Check, Play, HelpCircle, 
-  ChevronDown, Search, Plus, Settings, MessageSquare, Star, 
+import Link from 'next/link';
+import {
+  Users, TrendingUp, Filter, BarChart, CircleDot,
+  Send, Database, ArrowUpRight, Check, Play, HelpCircle,
+  ChevronDown, Search, Plus, Settings, MessageSquare, Star,
   RotateCw, Activity, ArrowLeftRight
 } from 'lucide-react';
 
@@ -158,8 +159,14 @@ const customConversations: ConversationData[] = [
   }
 ];
 
+const transitionVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
+};
+const AnimatedGroup = motion.div;
+
 export default function HeroSandbox() {
-  const [activeId, setActiveId] = useState<string>('weekly-users');
+  const [activeId, setActiveId] = useState<string>('mrr-trends');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [typedMessage, setTypedMessage] = useState<string>('');
@@ -213,7 +220,7 @@ export default function HeroSandbox() {
     setCustomQueryInput('');
   };
 
-  const filteredConvs = customConversations.filter(c => 
+  const filteredConvs = customConversations.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -232,60 +239,74 @@ export default function HeroSandbox() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-white pt-12 pb-24 border-b border-gray-150 select-none">
-      
+    <section className="relative overflow-hidden bg-white pt-12 pb-20 lg:pb-28 select-none">
+
       {/* Background patterns */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_80%,transparent_100%)] opacity-35 pointer-events-none" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-        
-        {/* Top Tagline */}
-        <div className="mb-4">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/10 bg-emerald-50/70 px-4 py-1.5 text-xs font-mono font-extrabold tracking-widest text-[#059669] uppercase">
-            LIVE COMPLIANT APP PREVIEW
-          </span>
-        </div>
 
-        {/* Dynamic Title */}
-        <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tighter text-gray-950 leading-[1.08] max-w-4xl mx-auto mb-5">
-          Tambo is conversational analytics <br />
-          <span className="text-emerald-500">connected directly to your database.</span>
-        </h1>
+        {/* Dynamic Title — blur-in reveal */}
+        <motion.div
+          initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0 mb-6">
+            <AnimatedGroup initial="hidden" animate="visible" variants={transitionVariants}>
+              <Link
+                href="#link"
+                className="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 dark:border-t-white/5 dark:shadow-zinc-950">
+                <span className="text-foreground text-sm font-semibold">Introducing Support for AI Models</span>
 
-        <p className="text-base sm:text-lg text-gray-650 max-w-3xl mx-auto leading-relaxed font-sans font-medium mb-10">
-          Stop writing SQL. Stop struggling with 40-filter dashboards. Just ask questions in normal words, and Tambo synthesizes visual report structures in real-time.
-        </p>
+                <ArrowUpRight className="h-4 w-4" />
+
+              </Link>
+            </AnimatedGroup>
+          </div>
+
+          <h1 className="font-display text-4xl sm:text-6xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter text-gray-950 leading-[1.04] max-w-5xl mx-auto mb-5">
+            Dashboards are dead. <br />
+            <span className="text-emerald-500">Conversation is the new interface.</span>
+          </h1>
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.7, delay: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="text-base sm:text-lg text-gray-650 max-w-3xl mx-auto leading-relaxed font-sans font-medium mb-10"
+        >
+          Ask questions in plain English. Tambo instantly queries your database, generates charts, and surfaces insights in seconds.
+        </motion.p>
 
         {/* Interactive Dashboard Workspace: REPLICATING SCREENSHOT 1 */}
         <div className="mt-8 text-left bg-white border border-gray-200/90 rounded-2xl shadow-2xl overflow-hidden max-w-6xl mx-auto">
-          
+
           {/* Main Top Header mimicking browser toolbar or app status */}
           <div className="flex items-center justify-between px-5 py-3 bg-[#FCFCFC] border-b border-gray-150 select-none">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-red-400 block" />
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 block" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 block" />
-              <span className="ml-2 font-mono text-xs font-bold text-gray-500">tambo-app-instance (production)</span>
+
             </div>
-            <div className="flex items-center gap-1.5 text-xs font-mono font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100/60 px-3 py-1 rounded-md">
-              <Database className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Db Connected: Postgresql Live</span>
-            </div>
+
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 min-h-[580px]">
-            
+
             {/* LEFT SIDEBAR: Matches Screenshot 1 exact layout */}
             <div className="col-span-12 md:col-span-4 lg:col-span-3 bg-[#FCFCFC] border-b md:border-b-0 md:border-r border-gray-150 flex flex-col justify-between select-none">
-              
+
               <div className="p-4 space-y-4">
-                
+
                 {/* Brand Logo & arrow */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="h-7 w-7 rounded-lg bg-emerald-500 flex items-center justify-center text-white shadow-sm">
+                    {/* <div className="h-7 w-7 rounded-lg bg-emerald-500 flex items-center justify-center text-white shadow-sm">
                       <BarChart className="h-4.5 w-4.5 stroke-[2.5]" />
-                    </div>
+                    </div> */}
                     <span className="font-sans font-extrabold text-xl tracking-tight text-gray-900">tambo</span>
                   </div>
                   <button className="p-1 rounded hover:bg-gray-100 border border-gray-150 bg-white" aria-label="Collapse info">
@@ -294,13 +315,13 @@ export default function HeroSandbox() {
                 </div>
 
                 {/* + New Conversation Button */}
-                <button 
+                {/* <button
                   onClick={() => setActiveId('weekly-users')}
                   className="w-full py-2.5 px-3 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm font-extrabold text-[#111] inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-colors"
                 >
                   <Plus className="h-4 w-4 text-emerald-500 stroke-[3]" />
                   <span>New conversation</span>
-                </button>
+                </button> */}
 
                 {/* Search query box */}
                 <div className="relative">
@@ -322,17 +343,16 @@ export default function HeroSandbox() {
                       <button
                         key={c.id}
                         onClick={() => setActiveId(c.id)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer ${
-                          activeId === c.id
-                            ? 'bg-emerald-50 border border-emerald-500/10 text-emerald-900 font-extrabold'
-                            : 'hover:bg-gray-100/70 border border-transparent text-gray-700 font-semibold'
-                        }`}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer ${activeId === c.id
+                          ? 'bg-emerald-50 border border-emerald-500/10 text-emerald-900 font-extrabold'
+                          : 'hover:bg-gray-100/70 border border-transparent text-gray-700 font-semibold'
+                          }`}
                       >
                         <div className="flex items-center gap-2 max-w-[80%]">
                           {renderIcon(c.id, `h-4 w-4 ${activeId === c.id ? 'text-emerald-600' : 'text-gray-500'}`)}
                           <span className="text-sm truncate leading-none">{c.name}</span>
                         </div>
-                        <span className="text-xs font-mono text-gray-450 whitespace-nowrap shrink-0">{c.timestamp}</span>
+                        {/* <span className="text-xs font-mono text-gray-450 whitespace-nowrap shrink-0">{c.timestamp}</span> */}
                       </button>
                     ))}
                   </div>
@@ -346,17 +366,16 @@ export default function HeroSandbox() {
                       <button
                         key={c.id}
                         onClick={() => setActiveId(c.id)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer ${
-                          activeId === c.id
-                            ? 'bg-emerald-50 border border-emerald-500/10 text-emerald-900 font-extrabold'
-                            : 'hover:bg-gray-100/70 border border-transparent text-gray-700 font-semibold'
-                        }`}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer ${activeId === c.id
+                          ? 'bg-emerald-50 border border-emerald-500/10 text-emerald-900 font-extrabold'
+                          : 'hover:bg-gray-100/70 border border-transparent text-gray-700 font-semibold'
+                          }`}
                       >
                         <div className="flex items-center gap-2 max-w-[80%]">
                           {renderIcon(c.id, `h-4 w-4 ${activeId === c.id ? 'text-emerald-600' : 'text-gray-500'}`)}
                           <span className="text-sm truncate leading-none">{c.name}</span>
                         </div>
-                        <span className="text-xs font-mono text-gray-450 whitespace-nowrap shrink-0">9:00 AM</span>
+                        {/* <span className="text-xs font-mono text-gray-450 whitespace-nowrap shrink-0">9:00 AM</span> */}
                       </button>
                     ))}
                   </div>
@@ -370,31 +389,13 @@ export default function HeroSandbox() {
                   <Settings className="h-4.5 w-4.5 text-gray-605" />
                   <span>Settings</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm text-gray-700 px-1 py-0.5 cursor-pointer hover:text-gray-900 font-extrabold">
-                  <HelpCircle className="h-4.5 w-4.5 text-gray-605" />
-                  <span>Help & Support</span>
-                </div>
-
-                {/* User Row mimic */}
-                <div className="border-t border-gray-150 pt-3.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-extrabold text-sm select-none">
-                      A
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-extrabold text-gray-950 truncate leading-tight">Admin User</p>
-                      <p className="text-xs text-gray-450 truncate leading-none mt-1 font-mono">admin@tambo.ai</p>
-                    </div>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </div>
               </div>
 
             </div>
 
             {/* RIGHT CONVERSATION CHAT VIEWPORT */}
             <div className="col-span-12 md:col-span-8 lg:col-span-9 flex flex-col justify-between bg-white relative">
-              
+
               {/* Settings button placeholder upper right */}
               <button className="absolute top-4 right-4 p-2.5 rounded-full border border-gray-200 hover:bg-gray-50 bg-white shadow-xs cursor-pointer z-20" aria-label="Toggle layout configuration">
                 <Settings className="h-4.5 w-4.5 text-gray-605" />
@@ -402,7 +403,7 @@ export default function HeroSandbox() {
 
               {/* Thread space */}
               <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-                
+
                 {/* User Prompt Message bubble (aligned right, clean soft background) */}
                 <div className="flex justify-end pr-10">
                   <div className="max-w-[85%] bg-slate-50 border border-gray-150/80 rounded-2xl px-4 py-3 text-sm sm:text-base text-gray-800 font-sans font-bold shadow-xs">
@@ -412,10 +413,10 @@ export default function HeroSandbox() {
 
                 {/* System response statement */}
                 <div className="space-y-1.5 max-w-xl pl-1 text-left">
-                  <div className="text-xs font-mono font-bold text-emerald-600 flex items-center gap-1.5 uppercase tracking-wider select-none mb-1">
+                  {/* <div className="text-xs font-mono font-bold text-emerald-600 flex items-center gap-1.5 uppercase tracking-wider select-none mb-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 block animate-pulse" />
                     <span>Tambo Agent response</span>
-                  </div>
+                  </div> */}
                   <p className="text-sm sm:text-base text-gray-800 leading-relaxed font-bold">
                     {isTyping ? (
                       <span>
@@ -438,14 +439,14 @@ export default function HeroSandbox() {
                       exit={{ opacity: 0, y: -10 }}
                       className="border border-gray-200 bg-white rounded-2xl shadow-lg shadow-gray-100 p-6 max-w-xl border-t-2 border-t-emerald-500 relative"
                     >
-                      
+
                       {/* Top Header Row of Card */}
                       <div className="flex items-start justify-between border-b border-gray-100 pb-4 mb-4 select-none">
                         <div>
                           <h3 className="font-sans font-extrabold text-base sm:text-lg text-gray-900 leading-tight">{activeConv.cardTitle}</h3>
                           <p className="text-xs text-gray-450 font-sans font-bold mt-1.5">{activeConv.cardSubtitle}</p>
                         </div>
-                        
+
                         {/* High stat green badge */}
                         <div className="text-right bg-emerald-50 border border-emerald-100/80 rounded-lg px-3 py-1.5 max-w-[200px]">
                           <span className="text-base sm:text-lg font-extrabold text-[#059669] block leading-none">{activeConv.badgeText}</span>
@@ -465,7 +466,7 @@ export default function HeroSandbox() {
 
                       {/* CHART LAYOUT DEPENDING ON SELECTED CONVERSATION */}
                       <div className="py-2">
-                        
+
                         {/* 1. Bar Chart: Replica of Screenshot 1 (Y-Axis, Grid Lines, Columns) */}
                         {activeConv.chartType === 'bar' && (
                           <div className="grid grid-cols-12 gap-3 items-stretch h-52">
@@ -494,7 +495,7 @@ export default function HeroSandbox() {
                               {/* Col 1: This Week */}
                               <div className="flex flex-col items-center z-10 w-24">
                                 <span className="text-xs font-extrabold text-gray-950 mb-1.5">1,515</span>
-                                <motion.div 
+                                <motion.div
                                   initial={{ height: 0 }}
                                   animate={{ height: '144px' }} // Approx 1515/2000 of canvas height
                                   transition={{ duration: 0.4 }}
@@ -506,7 +507,7 @@ export default function HeroSandbox() {
                               {/* Col 2: Last Week */}
                               <div className="flex flex-col items-center z-10 w-24">
                                 <span className="text-xs font-extrabold text-gray-650 mb-1.5">1,283</span>
-                                <motion.div 
+                                <motion.div
                                   initial={{ height: 0 }}
                                   animate={{ height: '122px' }} // Approx 1283/2000
                                   transition={{ duration: 0.4 }}
@@ -575,7 +576,7 @@ export default function HeroSandbox() {
                               <div key={index} className="flex items-center gap-3">
                                 <span className="w-32 text-xs text-gray-600 font-bold truncate block">{item.stage}</span>
                                 <div className="flex-1 bg-gray-50 rounded-lg h-6 relative flex items-center border border-gray-100 overflow-hidden">
-                                  <motion.div 
+                                  <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: item.pct }}
                                     className={`h-full ${item.isGoal ? 'bg-emerald-500' : 'bg-emerald-400/80'}`}
@@ -655,7 +656,7 @@ export default function HeroSandbox() {
                                   <div className="text-xs text-[#059669] font-bold opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5">
                                     {bar.val}
                                   </div>
-                                  <motion.div 
+                                  <motion.div
                                     initial={{ height: 0 }}
                                     animate={{ height: bar.val / 11 }} // visual multiplier
                                     className="w-8 rounded-t bg-emerald-500 hover:bg-[#059669] shadow-xs cursor-pointer transition-colors"
@@ -685,28 +686,9 @@ export default function HeroSandbox() {
 
                       </div>
 
-                      {/* Divider line inside card */}
-                      <div className="border-t border-gray-100 my-4 pt-3.5 flex flex-col sm:flex-row items-center justify-between text-xs select-none text-gray-400 font-mono">
-                        
-                        {/* Users counts ribbon matching Screenshot 1 */}
-                        <div className="flex items-center gap-1.5 mb-1.5 sm:mb-0">
-                          <Users className="h-4.5 w-4.5 text-[#059669] shrink-0" />
-                          <span className="font-sans font-extrabold text-gray-500">
-                            This Week: <strong className="text-gray-950 font-black">1,515 new users</strong> • Last: <strong className="text-gray-950 font-black">1,283</strong>
-                          </span>
-                        </div>
 
-                        {/* Trend arrows */}
-                        <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
-                          <span>Increase: 232 users (+18.1%)</span>
-                          <span>&uarr;</span>
-                        </div>
-                      </div>
 
-                      {/* Disclosure disclaimer at bottom of card */}
-                      <div className="text-[10px] text-gray-400 text-left pt-1 font-semibold leading-relaxed border-t border-gray-50/50">
-                        * Metrics are based on user join date in (UTC).
-                      </div>
+
 
                     </motion.div>
                   )}
@@ -733,10 +715,7 @@ export default function HeroSandbox() {
                     <Send className="h-4 w-4" />
                   </button>
                 </form>
-                <div className="flex items-center justify-between text-xs text-gray-400 font-mono mt-2 font-bold">
-                  <span>⚡ postgres://tambo_admin:*****@db.supabase.co/prod</span>
-                  <span>Synthesized in 0.04s</span>
-                </div>
+
               </div>
 
             </div>
